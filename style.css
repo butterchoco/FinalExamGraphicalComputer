@@ -1,0 +1,19 @@
+body canvas {
+  margin: 0;
+  padding: 0;
+  position: absolute;
+}
+
+#hud {
+  background: rgb(70, 189, 197);
+  max-width: 40%;
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 10px;
+}
+
+#hud p {
+  font-weight: bold;
+  text-transform: capitalize;
+  color: white;
+}

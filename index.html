@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Shadow Mapping Tutorial</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body onload="Init();">
+    <button id="changeShadingMode">Change Shading Mode</button>
+    <button id="changeInteractiveMode">Change Interactive Mode</button>
+    <div id="hud">
+      <p>Shading Mode : <span id="shadingMode"></span></p>
+      <p>Interactive Mode : <span id="interactiveMode"></span></p>
+    </div>
+    <canvas id="gl-surface">
+      Get a <a href="http://chrome.google.com">less stupid</a> browser
+    </canvas>
+    <script src="async.min.js"></script>
+    <script src="gl-matrix-min.js"></script>
+
+    <script src="app.js"></script>
+    <script src="util.js"></script>
+    <script src="Models.js"></script>
+    <script src="LightMapDemoScene.js"></script>
+    <script src="Heli.js"></script>
+  </body>
+</html>
