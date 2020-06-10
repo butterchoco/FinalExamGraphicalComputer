@@ -3,6 +3,8 @@ precision mediump float;
 uniform vec3 pointLightPosition;
 uniform vec4 meshColor;
 
+uniform samplerCube sampler;
+
 uniform samplerCube lightShadowMap;
 uniform vec2 shadowClipNearFar;
 
@@ -27,5 +29,7 @@ void main()
 		lightIntensity += 0.4 * max(dot(fNorm, toLightNormal), 0.0);
 	}
 
-	gl_FragColor = vec4(meshColor.rgb * lightIntensity, meshColor.a);
+	vec4 texel = textureCube(sampler, normalize(fNorm));
+
+	gl_FragColor = vec4(texel.rgb * lightIntensity, texel.a);
 }

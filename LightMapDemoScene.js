@@ -39,6 +39,15 @@ LightMapDemoScene.prototype.Load = function (cb) {
           callback
         );
       },
+      Images: function (callback) {
+        async.map(
+          {
+            Drone: "drone_texture.jpg",
+          },
+          LoadImage,
+          callback
+        );
+      },
     },
     function (loadErrors, loadResults) {
       if (loadErrors) {
@@ -51,7 +60,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
       //
 
       for (
-        var i = 0;
+        let i = 0;
         i < loadResults.Models.RoomModel.rootnode.children.length;
         i++
       ) {
@@ -243,7 +252,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
         loadResults.ShaderCode.Shadow_FSText
       );
       if (me.ShadowProgram.error) {
-        cb("ShadowProgram " + me.ShadowProgram.error);
+        cb("ShadowProgram " + me.wShadowProgram.error);
         return;
       }
 
@@ -282,7 +291,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
           me.ShadowProgram,
           "pointLightPosition"
         ),
-        meshColor: me.gl.getUniformLocation(me.ShadowProgram, "meshColor"),
+        meshColor: me.gl.getUniformLocation(me.ShadowProgram, "sampler"),
         lightShadowMap: me.gl.getUniformLocation(
           me.ShadowProgram,
           "lightShadowMap"
@@ -320,9 +329,6 @@ LightMapDemoScene.prototype.Load = function (cb) {
       //
       // Create Framebuffers and Textures
       //
-      LoadImage("drone_texture.jpg", function (e, image) {
-        console.log(image);
-      });
 
       me.shadowMapCube = me.gl.createTexture();
       me.gl.bindTexture(me.gl.TEXTURE_CUBE_MAP, me.shadowMapCube);
@@ -349,7 +355,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
       me.floatExtension = me.gl.getExtension("OES_texture_float");
       me.floatLinearExtension = me.gl.getExtension("OES_texture_float_linear");
       if (me.floatExtension && me.floatLinearExtension) {
-        for (var i = 0; i < 6; i++) {
+        for (let i = 0; i < 6; i++) {
           me.gl.texImage2D(
             me.gl.TEXTURE_CUBE_MAP_POSITIVE_X + i,
             0,
@@ -363,7 +369,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
           );
         }
       } else {
-        for (var i = 0; i < 6; i++) {
+        for (let i = 0; i < 6; i++) {
           me.gl.texImage2D(
             me.gl.TEXTURE_CUBE_MAP_POSITIVE_X + i,
             0,
@@ -481,7 +487,8 @@ LightMapDemoScene.prototype.Load = function (cb) {
     Left: false,
     Forward: false,
     Back: false,
-
+    RotUp: false,
+    RotDown: false,
     RotLeft: false,
     RotRight: false,
   };
@@ -531,11 +538,6 @@ LightMapDemoScene.prototype.Begin = function () {
 
   var me = this;
 
-  const changeShadingModeBtn = document.getElementById("changeShadingMode");
-  const changeInteractiveModeBtn = document.getElementById(
-    "changeInteractiveMode"
-  );
-
   // Attach event listeners
   this.__ResizeWindowListener = this._OnResizeWindow.bind(this);
   this.__KeyDownWindowListener = this._OnKeyDown.bind(this);
@@ -545,8 +547,7 @@ LightMapDemoScene.prototype.Begin = function () {
   AddEvent(window, "resize", this.__ResizeWindowListener);
   AddEvent(window, "keydown", this.__KeyDownWindowListener);
   AddEvent(window, "keyup", this.__KeyUpWindowListener);
-  AddEvent(changeShadingModeBtn, "click", this.__ModeClickListener);
-  AddEvent(changeInteractiveModeBtn, "click", this.__ModeClickListener);
+  AddEvent(window, "click", this.__ModeClickListener);
 
   // Render Loop
   var previousFrame = performance.now();
@@ -718,7 +719,7 @@ LightMapDemoScene.prototype._Update = function (dt) {
   var xDisplacement = Math.sin(this.lightDisplacementInputAngle) * 2.8;
 
   this.LightMesh.world[12] = xDisplacement;
-  for (var i = 0; i < this.shadowMapCameras.length; i++) {
+  for (let i = 0; i < this.shadowMapCameras.length; i++) {
     mat4.getTranslation(
       this.shadowMapCameras[i].position,
       this.LightMesh.world
@@ -757,7 +758,7 @@ LightMapDemoScene.prototype._GenerateShadowMap = function () {
     this.shadowMapProj
   );
 
-  for (var i = 0; i < this.shadowMapCameras.length; i++) {
+  for (let i = 0; i < this.shadowMapCameras.length; i++) {
     // Set per light uniforms
     gl.uniformMatrix4fv(
       this.ShadowMapGenProgram.uniforms.mView,
@@ -863,14 +864,14 @@ LightMapDemoScene.prototype._Render = function () {
   gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.shadowMapCube);
 
   // Draw meshes
-  for (var i = 0; i < this.Meshes.length; i++) {
+  for (let i = 0; i < this.Meshes.length; i++) {
     // Per object uniforms
     gl.uniformMatrix4fv(
       this.ShadowProgram.uniforms.mWorld,
       gl.FALSE,
       this.Meshes[i].world
     );
-    gl.uniform4fv(this.ShadowProgram.uniforms.meshColor, this.Meshes[i].color);
+    // gl.uniform4fv(this.ShdowProgram.uniforms.meshColor, this.Meshes[i].color);
 
     // Set attributes
     gl.bindBuffer(gl.ARRAY_BUFFER, this.Meshes[i].vbo);

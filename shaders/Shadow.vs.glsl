@@ -10,8 +10,13 @@ attribute vec3 vNorm;
 varying vec3 fPos;
 varying vec3 fNorm;
 
+varying vec2 fragTexCoord;
+attribute vec2 vertTexCoord;
+
 void main()
 {
+	fragTexCoord = vertTexCoord;
+	
 	fPos = (mWorld * vec4(vPos, 1.0)).xyz;
 	fNorm = (mWorld * vec4(vNorm, 0.0)).xyz;
 
