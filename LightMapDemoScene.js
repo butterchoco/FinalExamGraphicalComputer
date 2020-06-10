@@ -102,7 +102,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
             );
             break;
           case "LightBulb_LightBulbMesh":
-            me.lightPosition = vec3.fromValues(0, 0.0, 2.58971);
+            me.lightPosition = vec3.fromValues(0, 3.0, 2.58971);
             me.LightMesh = new Model(
               me.gl,
               mesh.vertices,

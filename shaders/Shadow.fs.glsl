@@ -13,6 +13,8 @@ varying vec3 fNorm;
 
 void main()
 {
+
+	vec3 directionalLight = normalize(vec3(0.6, 1.0, 0.3));
 	vec3 toLightNormal = normalize(pointLightPosition - fPos);
 
 	float fromLightToFrag =
@@ -22,10 +24,12 @@ void main()
 
 	float shadowMapValue = textureCube(lightShadowMap, -toLightNormal).r;
 
-	float lightIntensity = 0.6;
+	float lightIntensity = 0.0;
 	if ((shadowMapValue + bias) >= fromLightToFrag) {
 		lightIntensity += 0.4 * max(dot(fNorm, toLightNormal), 0.0);
 	}
+
+	lightIntensity += 1.0 * max(dot(fNorm, directionalLight), 0.0);
 
 	gl_FragColor = vec4(meshColor.rgb * lightIntensity, meshColor.a);
 }
