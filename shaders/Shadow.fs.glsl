@@ -24,12 +24,23 @@ void main()
 
 	float shadowMapValue = textureCube(lightShadowMap, -toLightNormal).r;
 
-	float lightIntensity = 0.0;
+	float pointLightInt = 0.0;
 	if ((shadowMapValue + bias) >= fromLightToFrag) {
-		lightIntensity += 0.4 * max(dot(fNorm, toLightNormal), 0.0);
+		pointLightInt += 0.6 * max(dot(fNorm, toLightNormal), 0.0);
 	}
 
-	lightIntensity += 1.0 * max(dot(fNorm, directionalLight), 0.0);
+	float dirLightInt = 1.0 * max(dot(fNorm, directionalLight), 0.0);
 
-	gl_FragColor = vec4(meshColor.rgb * lightIntensity, meshColor.a);
+	vec3 pointLightColor = vec3(1.0, 1.0, 1.0) * pointLightInt;
+	vec3 dirLightColor = vec3(1.0, 1.0, 0.5) * dirLightInt;
+
+	vec3 finalLightColor = pointLightColor + dirLightColor;
+
+	vec3 finalColor = vec3(
+		meshColor.r * finalLightColor.r,
+		meshColor.g * finalLightColor.g,
+		meshColor.b * finalLightColor.b
+	);
+
+	gl_FragColor = vec4(finalColor, meshColor.a);
 }
