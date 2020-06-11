@@ -4,10 +4,16 @@
 
 var LightMapDemoScene = function (gl) {
   this.gl = gl;
-  this.shadingMode = gl.TRIANGLES;
-  this.wireframe = false;
-  this.interactive = false;
+  this.mode = gl.TRIANGLES;
 };
+
+const DronePosition = {
+  x: 0,
+  y: 0,
+  z: 0,
+};
+
+var isDroneMode = true;
 
 LightMapDemoScene.prototype.Load = function (cb) {
   console.log("Loading demo scene");
@@ -66,11 +72,27 @@ LightMapDemoScene.prototype.Load = function (cb) {
               mesh.normals,
               vec4.fromValues(0.8, 0.8, 1.0, 1.0)
             );
+            // mat4.rotate(
+            //   me.MonkeyMesh.world,
+            //   me.MonkeyMesh.world,
+            //   glMatrix.toRadian(94.87),
+            //   vec3.fromValues(0, 0, -1)
+            // );
+            // mat4.translate(
+            //   me.MonkeyMesh.world,
+            //   me.MonkeyMesh.world,
+            //   vec4.fromValues(-3, 0, -2)
+            // );
             mat4.rotate(
               me.MonkeyMesh.world,
               me.MonkeyMesh.world,
-              glMatrix.toRadian(0),
-              vec3.fromValues(0, 0, 1)
+              glMatrix.toRadian(94.87),
+              vec3.fromValues(0, 0, -1)
+            );
+            mat4.translate(
+              me.MonkeyMesh.world,
+              me.MonkeyMesh.world,
+              vec4.fromValues(2.07919, -0.98559, 1.7574)
             );
             break;
           case "Table_TableMesh":
@@ -133,11 +155,11 @@ LightMapDemoScene.prototype.Load = function (cb) {
               mesh.normals,
               vec4.fromValues(1, 1, 1, 1)
             );
-            me.DroneMesh["position"] = {
-              x: 0,
-              y: 0,
-              z: 0,
-            };
+            mat4.translate(
+              me.DroneMesh.world,
+              me.DroneMesh.world,
+              vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+            );
             break;
           case "DroneRotorR_DroneMesh":
             me.RotorRDroneMesh = new Model(
@@ -146,6 +168,11 @@ LightMapDemoScene.prototype.Load = function (cb) {
               [].concat.apply([], mesh.faces),
               mesh.normals,
               vec4.fromValues(1, 1, 1, 1)
+            );
+            mat4.translate(
+              me.RotorRDroneMesh.world,
+              me.RotorRDroneMesh.world,
+              vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
             );
             break;
           case "DroneRotorL_DroneMesh":
@@ -156,6 +183,11 @@ LightMapDemoScene.prototype.Load = function (cb) {
               mesh.normals,
               vec4.fromValues(1, 1, 1, 1)
             );
+            mat4.translate(
+              me.RotorLDroneMesh.world,
+              me.RotorLDroneMesh.world,
+              vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+            );
             break;
           case "DroneRotorR2_DroneMesh":
             me.RotorR2DroneMesh = new Model(
@@ -164,6 +196,11 @@ LightMapDemoScene.prototype.Load = function (cb) {
               [].concat.apply([], mesh.faces),
               mesh.normals,
               vec4.fromValues(1, 1, 1, 1)
+            );
+            mat4.translate(
+              me.RotorR2DroneMesh.world,
+              me.RotorR2DroneMesh.world,
+              vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
             );
             break;
           case "DroneRotorL2_DroneMesh":
@@ -174,10 +211,15 @@ LightMapDemoScene.prototype.Load = function (cb) {
               mesh.normals,
               vec4.fromValues(1, 1, 1, 1)
             );
+            mat4.translate(
+              me.RotorL2DroneMesh.world,
+              me.RotorL2DroneMesh.world,
+              vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+            );
             break;
         }
       }
-
+      console.log(me);
       if (!me.MonkeyMesh) {
         cb("Failed to load monkey mesh");
         return;
@@ -210,7 +252,6 @@ LightMapDemoScene.prototype.Load = function (cb) {
         cb("Failed to load drone mesh");
         return;
       }
-
       me.Meshes = [
         me.MonkeyMesh,
         me.TableMesh,
@@ -320,10 +361,6 @@ LightMapDemoScene.prototype.Load = function (cb) {
       //
       // Create Framebuffers and Textures
       //
-      LoadImage("drone_texture.jpg", function (e, image) {
-        console.log(image);
-      });
-
       me.shadowMapCube = me.gl.createTexture();
       me.gl.bindTexture(me.gl.TEXTURE_CUBE_MAP, me.shadowMapCube);
       me.gl.texParameteri(
@@ -397,12 +434,21 @@ LightMapDemoScene.prototype.Load = function (cb) {
       //
       // Logical Values
       //
-      me.camera = new Camera(
-        vec3.fromValues(0, 2, 6),
-        vec3.fromValues(0, 1, 0),
-        vec3.fromValues(0, 0, -1)
-      );
-
+      
+        console.log(vec3.fromValues(0,0,0));
+      if (isDroneMode) {
+        me.camera = new Camera(
+          vec3.fromValues(0, 2, 10),
+          vec3.fromValues(0, -1, 0),
+          vec3.fromValues(0, 0, -1)
+        );
+      } else {
+        me.camera = new Camera(
+          vec3.fromValues(0, 2, 10),
+          vec3.fromValues(0, 1, 0),
+          vec3.fromValues(0, 0, -1)
+        );
+      }
       me.projMatrix = mat4.create();
       me.viewMatrix = mat4.create();
 
@@ -531,10 +577,8 @@ LightMapDemoScene.prototype.Begin = function () {
 
   var me = this;
 
-  const changeShadingModeBtn = document.getElementById("changeShadingMode");
-  const changeInteractiveModeBtn = document.getElementById(
-    "changeInteractiveMode"
-  );
+  const changeModeBtn = document.getElementById("changeMode");
+  const droneModeBtn = document.getElementById("droneMode");
 
   // Attach event listeners
   this.__ResizeWindowListener = this._OnResizeWindow.bind(this);
@@ -545,8 +589,12 @@ LightMapDemoScene.prototype.Begin = function () {
   AddEvent(window, "resize", this.__ResizeWindowListener);
   AddEvent(window, "keydown", this.__KeyDownWindowListener);
   AddEvent(window, "keyup", this.__KeyUpWindowListener);
-  AddEvent(changeShadingModeBtn, "click", this.__ModeClickListener);
-  AddEvent(changeInteractiveModeBtn, "click", this.__ModeClickListener);
+  AddEvent(changeModeBtn, "click", this.__ModeClickListener);
+  AddEvent(droneModeBtn, "click", function () {
+    isDroneMode = !isDroneMode;
+    console.log(isDroneMode);
+    console.log();
+  });
 
   // Render Loop
   var previousFrame = performance.now();
@@ -586,23 +634,100 @@ LightMapDemoScene.prototype.End = function () {
 // Private Methods
 //
 
-LightMapDemoScene.prototype._Update = function (dt) {
+LightMapDemoScene.prototype._Update = async function (dt) {
+  // mat4.translate(
+  //   this.RotorLDroneMesh.world,
+  //   this.RotorLDroneMesh.world,
+  //   vec3.fromValues(-1.5, 0, 0.2)
+  // );
+
+  // mat4.rotate(
+  //   this.RotorLDroneMesh.world,
+  //   this.RotorLDroneMesh.world,
+  //   glMatrix.toRadian(94.87),
+  //   vec3.fromValues(0, 0, -1)
+  // );
+
+  // mat4.translate(
+  //   this.DroneMesh.world,
+  //   this.DroneMesh.world,
+  //   vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+  // );
+  mat4.rotateZ(
+    this.MonkeyMesh.world,
+    this.MonkeyMesh.world,
+    (dt / 1000) * 2 * Math.PI * 0.3
+  );
+
   if (this.PressedKeys.Forward && !this.PressedKeys.Back) {
     this.camera.moveForward((dt / 1000) * this.MoveForwardSpeed);
-    if (this.interactive) {
-      this.DroneMesh.position.z += 0.001;
-    }
-  } else {
-    this.DroneMesh.position.z += 0;
+    // mat4.translate(
+    //   this.RotorLDroneMesh.world,
+    //   this.RotorLDroneMesh,
+    //   vec3.fromValues(-DronePosition.x, -DronePosition.y, -DronePosition.z)
+    // );
+    mat4.translate(
+      this.RotorLDroneMesh.world,
+      this.RotorLDroneMesh,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
+    DronePosition.z += (dt / 1000) * this.MoveForwardSpeed;
+    await mat4.translate(
+      this.DroneMesh.world,
+      this.DroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
+    await mat4.translate(
+      this.RotorL2DroneMesh.world,
+      this.RotorL2DroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
+    await mat4.translate(
+      this.RotorR2DroneMesh.world,
+      this.RotorR2DroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
+    await mat4.translate(
+      this.RotorLDroneMesh.world,
+      this.RotorLDroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
+    await mat4.translate(
+      this.RotorRDroneMesh.world,
+      this.RotorRDroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
   }
 
   if (this.PressedKeys.Back && !this.PressedKeys.Forward) {
     this.camera.moveForward((-dt / 1000) * this.MoveForwardSpeed);
-    if (this.interactive) {
-      this.DroneMesh.position.z -= 0.001;
-    }
-  } else {
-    this.DroneMesh.position.z -= 0;
+    DronePosition.z += (-dt / 1000) * this.MoveForwardSpeed;
+
+    await mat4.translate(
+      this.DroneMesh.world,
+      this.DroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
+    await mat4.translate(
+      this.RotorL2DroneMesh.world,
+      this.RotorL2DroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
+    await mat4.translate(
+      this.RotorR2DroneMesh.world,
+      this.RotorR2DroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
+    await mat4.translate(
+      this.RotorLDroneMesh.world,
+      this.RotorLDroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
+    await mat4.translate(
+      this.RotorRDroneMesh.world,
+      this.RotorRDroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
   }
 
   if (this.PressedKeys.Right && !this.PressedKeys.Left) {
@@ -638,80 +763,9 @@ LightMapDemoScene.prototype._Update = function (dt) {
   }
 
   if (this.wireframe) {
-    document.querySelector("#shadingMode").innerHTML = "wireframe";
-    this.shadingMode = this.gl.LINES;
+    this.mode = this.gl.LINES;
   } else {
-    document.querySelector("#shadingMode").innerHTML = "shading";
-    this.shadingMode = this.gl.TRIANGLES;
-  }
-
-  // Change __update in Demo Mode
-  mat4.rotateY(
-    this.MonkeyMesh.world,
-    this.MonkeyMesh.world,
-    (dt / 1000) * this.RotateSpeed
-  );
-  mat4.translate(
-    this.MonkeyMesh.world,
-    this.MonkeyMesh.world,
-    vec3.fromValues(0, -0.3, 0)
-  );
-  mat4.translate(
-    this.MonkeyMesh.world,
-    this.MonkeyMesh.world,
-    vec3.fromValues(0, 0.3, 0)
-  );
-
-  // Change __update in Interactive Mode
-  if (this.interactive) {
-    document.querySelector("#interactiveMode").innerHTML = "interactive";
-    mat4.translate(
-      this.DroneMesh.world,
-      this.DroneMesh.world,
-      vec3.fromValues(
-        this.DroneMesh.position.x,
-        this.DroneMesh.position.y,
-        this.DroneMesh.position.z
-      )
-    );
-    mat4.translate(
-      this.RotorL2DroneMesh.world,
-      this.RotorL2DroneMesh.world,
-      vec3.fromValues(
-        this.DroneMesh.position.x,
-        this.DroneMesh.position.y,
-        this.DroneMesh.position.z
-      )
-    );
-    mat4.translate(
-      this.RotorR2DroneMesh.world,
-      this.RotorR2DroneMesh.world,
-      vec3.fromValues(
-        this.DroneMesh.position.x,
-        this.DroneMesh.position.y,
-        this.DroneMesh.position.z
-      )
-    );
-    mat4.translate(
-      this.RotorLDroneMesh.world,
-      this.RotorLDroneMesh.world,
-      vec3.fromValues(
-        this.DroneMesh.position.x,
-        this.DroneMesh.position.y,
-        this.DroneMesh.position.z
-      )
-    );
-    mat4.translate(
-      this.RotorRDroneMesh.world,
-      this.RotorRDroneMesh.world,
-      vec3.fromValues(
-        this.DroneMesh.position.x,
-        this.DroneMesh.position.y,
-        this.DroneMesh.position.z
-      )
-    );
-  } else {
-    document.querySelector("#interactiveMode").innerHTML = "Demo";
+    this.mode = this.gl.TRIANGLES;
   }
 
   this.lightDisplacementInputAngle += dt / 2337;
@@ -807,12 +861,7 @@ LightMapDemoScene.prototype._GenerateShadowMap = function () {
       gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.Meshes[j].ibo);
-      gl.drawElements(
-        this.shadingMode,
-        this.Meshes[j].nPoints,
-        gl.UNSIGNED_SHORT,
-        0
-      );
+      gl.drawElements(this.mode, this.Meshes[j].nPoints, gl.UNSIGNED_SHORT, 0);
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
     }
   }
@@ -898,12 +947,7 @@ LightMapDemoScene.prototype._Render = function () {
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.Meshes[i].ibo);
-    gl.drawElements(
-      this.shadingMode,
-      this.Meshes[i].nPoints,
-      gl.UNSIGNED_SHORT,
-      0
-    );
+    gl.drawElements(this.mode, this.Meshes[i].nPoints, gl.UNSIGNED_SHORT, 0);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
   }
 };
@@ -972,6 +1016,7 @@ LightMapDemoScene.prototype._OnKeyUp = function (e) {
   switch (e.code) {
     case "KeyW":
       this.PressedKeys.Forward = false;
+      console.log(me);
       break;
     case "KeyA":
       this.PressedKeys.Left = false;
@@ -1004,11 +1049,5 @@ LightMapDemoScene.prototype._OnKeyUp = function (e) {
 };
 
 LightMapDemoScene.prototype._OnClick = function (e) {
-  switch (e.target.id) {
-    case "changeShadingMode":
-      this.wireframe = !this.wireframe;
-      break;
-    case "changeInteractiveMode":
-      this.interactive = !this.interactive;
-  }
+  this.wireframe = !this.wireframe;
 };

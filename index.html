@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <style>
+      body canvas {
+        margin: 0;
+        padding: 0;
+        position: absolute;
+      }
+    </style>
     <title>Shadow Mapping Tutorial</title>
-    <link rel="stylesheet" href="style.css" />
   </head>
   <body onload="Init();">
-    <button id="changeShadingMode">Change Shading Mode</button>
-    <button id="changeInteractiveMode">Change Interactive Mode</button>
-    <div id="hud">
-      <p>Shading Mode : <span id="shadingMode"></span></p>
-      <p>Interactive Mode : <span id="interactiveMode"></span></p>
-    </div>
+    <button id="changeMode">Change Mode</button>
+    <button id="droneMode">Become the drone</button>
     <canvas id="gl-surface">
       Get a <a href="http://chrome.google.com">less stupid</a> browser
     </canvas>
