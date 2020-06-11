@@ -438,7 +438,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
         console.log(vec3.fromValues(0,0,0));
       if (isDroneMode) {
         me.camera = new Camera(
-          vec3.fromValues(0, 2, 10),
+          vec3.fromValues(0, 2, 1),
           vec3.fromValues(0, -1, 0),
           vec3.fromValues(0, 0, -1)
         );
@@ -533,6 +533,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
   };
 
   me.MoveForwardSpeed = 3.5;
+  me.DroneSpeed = 1.5;
   me.RotateSpeed = 1.5;
   me.textureSize = getParameterByName("texSize") || 512;
 
@@ -563,6 +564,7 @@ LightMapDemoScene.prototype.Unload = function () {
   this.PressedKeys = null;
 
   this.MoveForwardSpeed = null;
+  this.DroneSpeed = null;
   this.RotateSpeed = null;
 
   this.shadowMapCube = null;
@@ -661,17 +663,17 @@ LightMapDemoScene.prototype._Update = async function (dt) {
 
   if (this.PressedKeys.Forward && !this.PressedKeys.Back) {
     this.camera.moveForward((dt / 1000) * this.MoveForwardSpeed);
-    // mat4.translate(
-    //   this.RotorLDroneMesh.world,
-    //   this.RotorLDroneMesh,
-    //   vec3.fromValues(-DronePosition.x, -DronePosition.y, -DronePosition.z)
-    // );
+    mat4.translate(
+      this.RotorLDroneMesh.world,
+      this.RotorLDroneMesh,
+      vec3.fromValues(-DronePosition.x, -DronePosition.y, -DronePosition.z)
+    );
     mat4.translate(
       this.RotorLDroneMesh.world,
       this.RotorLDroneMesh,
       vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
     );
-    DronePosition.z += (dt / 1000) * this.MoveForwardSpeed;
+    DronePosition.z += (dt / 1000) * this.DroneSpeed;
     await mat4.translate(
       this.DroneMesh.world,
       this.DroneMesh.world,
@@ -701,7 +703,7 @@ LightMapDemoScene.prototype._Update = async function (dt) {
 
   if (this.PressedKeys.Back && !this.PressedKeys.Forward) {
     this.camera.moveForward((-dt / 1000) * this.MoveForwardSpeed);
-    DronePosition.z += (-dt / 1000) * this.MoveForwardSpeed;
+    DronePosition.z += (-dt / 1000) * this.DroneSpeed;
 
     await mat4.translate(
       this.DroneMesh.world,
