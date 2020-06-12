@@ -438,7 +438,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
         console.log(vec3.fromValues(0,0,0));
       if (isDroneMode) {
         me.camera = new Camera(
-          vec3.fromValues(0, 2, 1),
+          vec3.fromValues(0, 1, 6),
           vec3.fromValues(0, -1, 0),
           vec3.fromValues(0, 0, -1)
         );
@@ -734,10 +734,66 @@ LightMapDemoScene.prototype._Update = async function (dt) {
 
   if (this.PressedKeys.Right && !this.PressedKeys.Left) {
     this.camera.moveRight((dt / 1000) * this.MoveForwardSpeed);
+
+    DronePosition.x += (-dt / 1000) * this.DroneSpeed;
+
+    await mat4.translate(
+      this.DroneMesh.world,
+      this.DroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
+    await mat4.translate(
+      this.RotorL2DroneMesh.world,
+      this.RotorL2DroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
+    await mat4.translate(
+      this.RotorR2DroneMesh.world,
+      this.RotorR2DroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
+    await mat4.translate(
+      this.RotorLDroneMesh.world,
+      this.RotorLDroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
+    await mat4.translate(
+      this.RotorRDroneMesh.world,
+      this.RotorRDroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
   }
 
   if (this.PressedKeys.Left && !this.PressedKeys.Right) {
     this.camera.moveRight((-dt / 1000) * this.MoveForwardSpeed);
+
+    DronePosition.x += (dt / 1000) * this.DroneSpeed;
+
+    await mat4.translate(
+      this.DroneMesh.world,
+      this.DroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
+    await mat4.translate(
+      this.RotorL2DroneMesh.world,
+      this.RotorL2DroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
+    await mat4.translate(
+      this.RotorR2DroneMesh.world,
+      this.RotorR2DroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
+    await mat4.translate(
+      this.RotorLDroneMesh.world,
+      this.RotorLDroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
+    await mat4.translate(
+      this.RotorRDroneMesh.world,
+      this.RotorRDroneMesh.world,
+      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+    );
   }
 
   if (this.PressedKeys.Up && !this.PressedKeys.Down) {
