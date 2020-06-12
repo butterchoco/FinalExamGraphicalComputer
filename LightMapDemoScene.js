@@ -890,7 +890,6 @@ LightMapDemoScene.prototype._Update = function (dt) {
   if (this.PressedKeys.Down && !this.PressedKeys.Up) {
     this.camera.moveUp((-dt / 1000) * this.MoveForwardSpeed);
     if (this.interactive) {
-      console.log("masuk");
       this.DroneMesh.position.y = 0;
       this.DroneMesh.position.y -= 0.0475;
     }
