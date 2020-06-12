@@ -31,11 +31,11 @@ void main()
 	float shadowMapValue = textureCube(lightShadowMap, -toLightNormal).r;
 
 	float pointLightInt = 0.0;
+	float dirLightInt = 0.0;
 	if ((shadowMapValue + bias) >= fromLightToFrag) {
 		pointLightInt += pointLightBase * max(dot(fNorm, toLightNormal), 0.0);
+		dirLightInt = dirLightBase * max(dot(fNorm, dirLightDirection), 0.0);
 	}
-
-	float dirLightInt = dirLightBase * max(dot(fNorm, dirLightDirection), 0.0);
 
 	vec3 finalLightColor = pointLightColor * pointLightInt + dirLightColor * dirLightInt;
 

@@ -19,7 +19,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
   */
 
   // light position and direction
-  me.lightPosition = vec3.fromValues(0, 2.0, 1.5);
+  me.pointLightPosition = vec3.fromValues(0, 2.0, 1.5);
   me.dirLightDirection = vec3.normalize(
     vec3.create(),
     vec3.fromValues(0.6, 1.0, 0.3)
@@ -88,7 +88,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
             mat4.translate(
               me.LightMesh.world,
               me.LightMesh.world,
-              me.lightPosition
+              me.pointLightPosition
             );
             break;
           case "Room":
@@ -691,38 +691,38 @@ LightMapDemoScene.prototype.Load = function (cb) {
       me.shadowMapCameras = [
         // Positive X
         new Camera(
-          me.lightPosition,
-          vec3.add(vec3.create(), me.lightPosition, vec3.fromValues(1, 0, 0)),
+          me.pointLightPosition,
+          vec3.add(vec3.create(), me.pointLightPosition, vec3.fromValues(1, 0, 0)),
           vec3.fromValues(0, -1, 0)
         ),
         // Negative X
         new Camera(
-          me.lightPosition,
-          vec3.add(vec3.create(), me.lightPosition, vec3.fromValues(-1, 0, 0)),
+          me.pointLightPosition,
+          vec3.add(vec3.create(), me.pointLightPosition, vec3.fromValues(-1, 0, 0)),
           vec3.fromValues(0, -1, 0)
         ),
         // Positive Y
         new Camera(
-          me.lightPosition,
-          vec3.add(vec3.create(), me.lightPosition, vec3.fromValues(0, 1, 0)),
+          me.pointLightPosition,
+          vec3.add(vec3.create(), me.pointLightPosition, vec3.fromValues(0, 1, 0)),
           vec3.fromValues(0, 0, 1)
         ),
         // Negative Y
         new Camera(
-          me.lightPosition,
-          vec3.add(vec3.create(), me.lightPosition, vec3.fromValues(0, -1, 0)),
+          me.pointLightPosition,
+          vec3.add(vec3.create(), me.pointLightPosition, vec3.fromValues(0, -1, 0)),
           vec3.fromValues(0, 0, -1)
         ),
         // Positive Z
         new Camera(
-          me.lightPosition,
-          vec3.add(vec3.create(), me.lightPosition, vec3.fromValues(0, 0, 1)),
+          me.pointLightPosition,
+          vec3.add(vec3.create(), me.pointLightPosition, vec3.fromValues(0, 0, 1)),
           vec3.fromValues(0, -1, 0)
         ),
         // Negative Z
         new Camera(
-          me.lightPosition,
-          vec3.add(vec3.create(), me.lightPosition, vec3.fromValues(0, 0, -1)),
+          me.pointLightPosition,
+          vec3.add(vec3.create(), me.pointLightPosition, vec3.fromValues(0, 0, -1)),
           vec3.fromValues(0, -1, 0)
         ),
       ];
@@ -802,7 +802,7 @@ LightMapDemoScene.prototype.Unload = function () {
   this.ShadowMapGenProgram = null;
 
   this.camera = null;
-  this.lightPosition = null;
+  this.pointLightPosition = null;
   this.dirLightDirection = null;
 
   this.pointLightInt = null;
@@ -1026,7 +1026,7 @@ LightMapDemoScene.prototype._GenerateShadowMap = function () {
   );
   gl.uniform3fv(
     this.ShadowMapGenProgram.uniforms.pointLightPosition,
-    this.lightPosition
+    this.pointLightPosition
   );
   gl.uniformMatrix4fv(
     this.ShadowMapGenProgram.uniforms.mProj,
@@ -1124,7 +1124,7 @@ LightMapDemoScene.prototype._Render = function () {
   );
   gl.uniform3fv(
     this.ShadowProgram.uniforms.pointLightPosition,
-    this.lightPosition
+    this.pointLightPosition
   );
   gl.uniform3fv(
     this.ShadowProgram.uniforms.dirLightDirection,
