@@ -5,9 +5,9 @@ var Model = function (gl, vertices, indices, normals, color) {
   this.ibo = gl.createBuffer();
   this.nbo = gl.createBuffer();
   this.nPoints = indices.length;
-
   this.world = mat4.create();
   this.color = color;
+  this.child = [];
 
   gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
@@ -24,6 +24,61 @@ var Model = function (gl, vertices, indices, normals, color) {
 
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+};
+
+Model.prototype.addChild = function (children) {
+  children.map((node) => {
+    this.child.push(node);
+  });
+};
+
+Model.prototype.translate = function (vec3) {
+  mat4.translate(this.world, this.world, vec3);
+  this.child.map((node) => {
+    mat4.translate(node.world, node.world, vec3);
+  });
+};
+
+Model.prototype.rotate = function (rad, vec3) {
+  mat4.rotate(this.world, this.world, glMatrix.toRadian(rad), vec3);
+  this.child.map((node) => {
+    mat4.rotate(node.world, node.world, glMatrix.toRadian(rad), vec3);
+  });
+};
+
+Model.prototype.rotateX = function (rad) {
+  mat4.rotateX(this.world, this.world, rad);
+  this.child.map((node) => {
+    mat4.rotateX(node.world, node.world, rad);
+  });
+};
+
+Model.prototype.rotateY = function (rad) {
+  mat4.rotateY(this.world, this.world, rad);
+  this.child.map((node) => {
+    mat4.rotateY(node.world, node.world, rad);
+  });
+};
+
+Model.prototype.rotateZ = function (rad) {
+  mat4.rotateZ(this.world, this.world, rad);
+  this.child.map((node) => {
+    mat4.rotateZ(node.world, node.world, rad);
+  });
+};
+
+Model.prototype.fromRotation = function (rad, vec3) {
+  mat4.fromRotation(this.world, glMatrix.toRadian(rad), vec3);
+  this.child.map((node) => {
+    mat4.fromRotation(node.world, glMatrix.toRadian(rad), vec3);
+  });
+};
+
+Model.prototype.fromTranslation = function (vec3) {
+  mat4.fromTranslation(this.world, vec3);
+  this.child.map((node) => {
+    mat4.fromTranslation(node.world, vec3);
+  });
 };
 
 var CreateShaderProgram = function (gl, vsText, fsText) {
