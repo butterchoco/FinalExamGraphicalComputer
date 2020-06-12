@@ -13,8 +13,8 @@ const DronePosition = {
   z: 0,
 };
 
-var isDroneMode = true;
-
+var isDroneMode = false;
+var isDronePositionCorrect = false;
 LightMapDemoScene.prototype.Load = function (cb) {
   console.log("Loading demo scene");
 
@@ -436,19 +436,11 @@ LightMapDemoScene.prototype.Load = function (cb) {
       //
       
         console.log(vec3.fromValues(0,0,0));
-      if (isDroneMode) {
-        me.camera = new Camera(
-          vec3.fromValues(0, 1, 6),
-          vec3.fromValues(0, -1, 0),
-          vec3.fromValues(0, 0, -1)
-        );
-      } else {
         me.camera = new Camera(
           vec3.fromValues(0, 2, 10),
           vec3.fromValues(0, 1, 0),
           vec3.fromValues(0, 0, -1)
         );
-      }
       me.projMatrix = mat4.create();
       me.viewMatrix = mat4.create();
 
@@ -533,7 +525,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
   };
 
   me.MoveForwardSpeed = 3.5;
-  me.DroneSpeed = 1.5;
+  me.DroneSpeed = 0.3;
   me.RotateSpeed = 1.5;
   me.textureSize = getParameterByName("texSize") || 512;
 
@@ -663,137 +655,156 @@ LightMapDemoScene.prototype._Update = async function (dt) {
 
   if (this.PressedKeys.Forward && !this.PressedKeys.Back) {
     this.camera.moveForward((dt / 1000) * this.MoveForwardSpeed);
-    mat4.translate(
-      this.RotorLDroneMesh.world,
-      this.RotorLDroneMesh,
-      vec3.fromValues(-DronePosition.x, -DronePosition.y, -DronePosition.z)
-    );
-    mat4.translate(
-      this.RotorLDroneMesh.world,
-      this.RotorLDroneMesh,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
-    DronePosition.z += (dt / 1000) * this.DroneSpeed;
-    await mat4.translate(
-      this.DroneMesh.world,
-      this.DroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
-    await mat4.translate(
-      this.RotorL2DroneMesh.world,
-      this.RotorL2DroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
-    await mat4.translate(
-      this.RotorR2DroneMesh.world,
-      this.RotorR2DroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
-    await mat4.translate(
-      this.RotorLDroneMesh.world,
-      this.RotorLDroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
-    await mat4.translate(
-      this.RotorRDroneMesh.world,
-      this.RotorRDroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
+    console.log(this.camera);
+    if (isDroneMode) {
+      mat4.translate(
+        this.RotorLDroneMesh.world,
+        this.RotorLDroneMesh,
+        vec3.fromValues(-DronePosition.x, -DronePosition.y, -DronePosition.z)
+      );
+      mat4.translate(
+        this.RotorLDroneMesh.world,
+        this.RotorLDroneMesh,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+      // DronePosition.z += (dt / 1000) * this.DroneSpeed;
+      console.log(dt);
+      DronePosition.z += (dt / 1000) * this.DroneSpeed;
+      await mat4.translate(
+        this.DroneMesh.world,
+        this.DroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+      await mat4.translate(
+        this.RotorL2DroneMesh.world,
+        this.RotorL2DroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+      await mat4.translate(
+        this.RotorR2DroneMesh.world,
+        this.RotorR2DroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+      await mat4.translate(
+        this.RotorLDroneMesh.world,
+        this.RotorLDroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+      await mat4.translate(
+        this.RotorRDroneMesh.world,
+        this.RotorRDroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+    }
   }
 
   if (this.PressedKeys.Back && !this.PressedKeys.Forward) {
     this.camera.moveForward((-dt / 1000) * this.MoveForwardSpeed);
-    DronePosition.z += (-dt / 1000) * this.DroneSpeed;
-
-    await mat4.translate(
-      this.DroneMesh.world,
-      this.DroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
-    await mat4.translate(
-      this.RotorL2DroneMesh.world,
-      this.RotorL2DroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
-    await mat4.translate(
-      this.RotorR2DroneMesh.world,
-      this.RotorR2DroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
-    await mat4.translate(
-      this.RotorLDroneMesh.world,
-      this.RotorLDroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
-    await mat4.translate(
-      this.RotorRDroneMesh.world,
-      this.RotorRDroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
+    // DronePosition.z += (-dt / 1000) * this.DroneSpeed;
+    
+    if (isDroneMode) {
+      DronePosition.z += this.DroneSpeed;
+  
+      await mat4.translate(
+        this.DroneMesh.world,
+        this.DroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+      await mat4.translate(
+        this.RotorL2DroneMesh.world,
+        this.RotorL2DroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+      await mat4.translate(
+        this.RotorR2DroneMesh.world,
+        this.RotorR2DroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+      await mat4.translate(
+        this.RotorLDroneMesh.world,
+        this.RotorLDroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+      await mat4.translate(
+        this.RotorRDroneMesh.world,
+        this.RotorRDroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+    }
   }
 
   if (this.PressedKeys.Right && !this.PressedKeys.Left) {
-    this.camera.moveRight((dt / 1000) * this.MoveForwardSpeed);
-
-    DronePosition.x += (-dt / 1000) * this.DroneSpeed;
-
-    await mat4.translate(
-      this.DroneMesh.world,
-      this.DroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
-    await mat4.translate(
-      this.RotorL2DroneMesh.world,
-      this.RotorL2DroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
-    await mat4.translate(
-      this.RotorR2DroneMesh.world,
-      this.RotorR2DroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
-    await mat4.translate(
-      this.RotorLDroneMesh.world,
-      this.RotorLDroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
-    await mat4.translate(
-      this.RotorRDroneMesh.world,
-      this.RotorRDroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
+    
+    if (!isDroneMode) {
+      this.camera.moveRight((dt / 1000) * this.MoveForwardSpeed);
+    }
+    
+    if (isDroneMode) {
+      this.camera.moveRight((-dt / 1000) * this.MoveForwardSpeed);
+      DronePosition.x += (-dt / 1000) * this.DroneSpeed;
+  
+      await mat4.translate(
+        this.DroneMesh.world,
+        this.DroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+      await mat4.translate(
+        this.RotorL2DroneMesh.world,
+        this.RotorL2DroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+      await mat4.translate(
+        this.RotorR2DroneMesh.world,
+        this.RotorR2DroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+      await mat4.translate(
+        this.RotorLDroneMesh.world,
+        this.RotorLDroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+      await mat4.translate(
+        this.RotorRDroneMesh.world,
+        this.RotorRDroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+    }
   }
 
   if (this.PressedKeys.Left && !this.PressedKeys.Right) {
-    this.camera.moveRight((-dt / 1000) * this.MoveForwardSpeed);
-
-    DronePosition.x += (dt / 1000) * this.DroneSpeed;
-
-    await mat4.translate(
-      this.DroneMesh.world,
-      this.DroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
-    await mat4.translate(
-      this.RotorL2DroneMesh.world,
-      this.RotorL2DroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
-    await mat4.translate(
-      this.RotorR2DroneMesh.world,
-      this.RotorR2DroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
-    await mat4.translate(
-      this.RotorLDroneMesh.world,
-      this.RotorLDroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
-    await mat4.translate(
-      this.RotorRDroneMesh.world,
-      this.RotorRDroneMesh.world,
-      vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
-    );
+    if (!isDroneMode) {
+      this.camera.moveRight((-dt / 1000) * this.MoveForwardSpeed);
+    }
+    if (isDroneMode) {
+      this.camera.moveRight((dt / 1000) * this.MoveForwardSpeed);
+      DronePosition.x += (dt / 1000) * this.DroneSpeed;
+  
+      await mat4.translate(
+        this.DroneMesh.world,
+        this.DroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+      await mat4.translate(
+        this.RotorL2DroneMesh.world,
+        this.RotorL2DroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+      await mat4.translate(
+        this.RotorR2DroneMesh.world,
+        this.RotorR2DroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+      await mat4.translate(
+        this.RotorLDroneMesh.world,
+        this.RotorLDroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+      await mat4.translate(
+        this.RotorRDroneMesh.world,
+        this.RotorRDroneMesh.world,
+        vec3.fromValues(DronePosition.x, DronePosition.y, DronePosition.z)
+      );
+    }
   }
 
   if (this.PressedKeys.Up && !this.PressedKeys.Down) {
@@ -806,24 +817,52 @@ LightMapDemoScene.prototype._Update = async function (dt) {
 
   if (this.PressedKeys.RotRight && !this.PressedKeys.RotLeft) {
     this.camera.rotateRight((-dt / 1000) * this.RotateSpeed);
+    if (isDroneMode) {
+    }
   }
 
   if (this.PressedKeys.RotLeft && !this.PressedKeys.RotRight) {
     this.camera.rotateRight((dt / 1000) * this.RotateSpeed);
+    if (isDroneMode) {
+      
+    }
   }
 
   if (this.PressedKeys.RotUp && !this.PressedKeys.RotDown) {
     this.camera.rotateUp((dt / 1000) * this.RotateSpeed);
+    if (isDroneMode) {
+      
+    }
   }
 
   if (this.PressedKeys.RotDown && !this.PressedKeys.RotUp) {
     this.camera.rotateUp((-dt / 1000) * this.RotateSpeed);
+    if (isDroneMode) {
+      
+    }
   }
 
   if (this.wireframe) {
     this.mode = this.gl.LINES;
   } else {
     this.mode = this.gl.TRIANGLES;
+  }
+
+  if (isDroneMode && !isDronePositionCorrect) {
+    this.camera.position = new Float32Array([-0.5077955722808838, 2.5, -3]);
+    this.camera.forward = new Float32Array([0.04018783941864967, -0.09950385987758636, 0.994225263595581]);
+    console.log(this.camera.position);
+    // this.camera.position = 
+    // [-0.5077955722808838, 0.3408866822719574, -2.2072010040283203]
+    console.log("Tempdronepos");
+    isDronePositionCorrect = true;
+  } else if (isDronePositionCorrect && !isDroneMode){
+    this.camera = new Camera(
+      vec3.fromValues(0, 2, 10),
+      vec3.fromValues(0, 1, 0),
+      vec3.fromValues(0, 0, -1)
+    );
+    isDronePositionCorrect = false;
   }
 
   this.lightDisplacementInputAngle += dt / 2337;
@@ -1108,4 +1147,9 @@ LightMapDemoScene.prototype._OnKeyUp = function (e) {
 
 LightMapDemoScene.prototype._OnClick = function (e) {
   this.wireframe = !this.wireframe;
+};
+
+LightMapDemoScene.prototype._OnClick = function (e) {
+  this.isDroneMode = !this.isDroneMode;
+  console.log(this.isDroneMode);
 };
