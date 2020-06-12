@@ -419,6 +419,22 @@ LightMapDemoScene.prototype.Load = function (cb) {
         return;
       }
 
+      me.BikeMesh.addChild([me.FrontWheelBikeMesh, me.RearWheelBikeMesh]);
+      me.MonsterMesh.addChild([
+        me.EyesMonsterMesh,
+        me.HeadMonsterMesh,
+        me.RightLegMonsterMesh,
+        me.LeftLegMonsterMesh,
+        me.RightHandMonsterMesh,
+        me.LeftHandMonsterMesh,
+      ]);
+      me.DroneMesh.addChild([
+        me.RotorLDroneMesh,
+        me.RotorL2DroneMesh,
+        me.RotorRDroneMesh,
+        me.RotorR2DroneMesh,
+      ]);
+
       me.Meshes = [
         me.LightMesh,
         me.WallsMesh,
@@ -834,35 +850,50 @@ LightMapDemoScene.prototype._Update = function (dt) {
   if (this.PressedKeys.Forward && !this.PressedKeys.Back) {
     this.camera.moveForward((dt / 1000) * this.MoveForwardSpeed);
     if (this.interactive) {
-      this.DroneMesh.position.z += 0.001;
+      this.DroneMesh.position.z = 0;
+      this.DroneMesh.position.z += 0.0475;
     }
-  } else {
-    this.DroneMesh.position.z += 0;
   }
 
   if (this.PressedKeys.Back && !this.PressedKeys.Forward) {
     this.camera.moveForward((-dt / 1000) * this.MoveForwardSpeed);
     if (this.interactive) {
-      this.DroneMesh.position.z -= 0.001;
+      this.DroneMesh.position.z = 0;
+      this.DroneMesh.position.z -= 0.0475;
     }
-  } else {
-    this.DroneMesh.position.z -= 0;
   }
 
   if (this.PressedKeys.Right && !this.PressedKeys.Left) {
     this.camera.moveRight((dt / 1000) * this.MoveForwardSpeed);
+    if (this.interactive) {
+      this.DroneMesh.position.x = 0;
+      this.DroneMesh.position.x -= 0.0475;
+    }
   }
 
   if (this.PressedKeys.Left && !this.PressedKeys.Right) {
     this.camera.moveRight((-dt / 1000) * this.MoveForwardSpeed);
+    if (this.interactive) {
+      this.DroneMesh.position.x = 0;
+      this.DroneMesh.position.x += 0.0475;
+    }
   }
 
   if (this.PressedKeys.Up && !this.PressedKeys.Down) {
     this.camera.moveUp((dt / 1000) * this.MoveForwardSpeed);
+    if (this.interactive) {
+      this.DroneMesh.position.y = 0;
+      this.DroneMesh.position.y += 0.0475;
+    }
   }
 
   if (this.PressedKeys.Down && !this.PressedKeys.Up) {
     this.camera.moveUp((-dt / 1000) * this.MoveForwardSpeed);
+    if (this.interactive) {
+      console.log("masuk");
+      this.DroneMesh.position.y = 0;
+      this.DroneMesh.position.y -= 0.0475;
+    }
   }
 
   if (this.PressedKeys.RotRight && !this.PressedKeys.RotLeft) {
@@ -893,53 +924,32 @@ LightMapDemoScene.prototype._Update = function (dt) {
 
   // Change __update in Interactive Mode
   if (this.interactive) {
+    if (
+      !this.PressedKeys.Forward &&
+      !this.PressedKeys.Back &&
+      !this.PressedKeys.Right &&
+      !this.PressedKeys.Left &&
+      !this.PressedKeys.Down &&
+      !this.PressedKeys.Up
+    ) {
+      this.DroneMesh.position.x = 0;
+      this.DroneMesh.position.y = 0;
+      this.DroneMesh.position.z = 0;
+    }
+    this.DroneMesh.translate(
+      vec3.fromValues(
+        this.DroneMesh.position.x,
+        this.DroneMesh.position.y,
+        this.DroneMesh.position.z
+      )
+    );
     document.querySelector("#interactiveMode").innerHTML = "interactive";
-    mat4.translate(
-      this.DroneMesh.world,
-      this.DroneMesh.world,
-      vec3.fromValues(
-        this.DroneMesh.position.x,
-        this.DroneMesh.position.y,
-        this.DroneMesh.position.z
-      )
-    );
-    mat4.translate(
-      this.RotorL2DroneMesh.world,
-      this.RotorL2DroneMesh.world,
-      vec3.fromValues(
-        this.DroneMesh.position.x,
-        this.DroneMesh.position.y,
-        this.DroneMesh.position.z
-      )
-    );
-    mat4.translate(
-      this.RotorR2DroneMesh.world,
-      this.RotorR2DroneMesh.world,
-      vec3.fromValues(
-        this.DroneMesh.position.x,
-        this.DroneMesh.position.y,
-        this.DroneMesh.position.z
-      )
-    );
-    mat4.translate(
-      this.RotorLDroneMesh.world,
-      this.RotorLDroneMesh.world,
-      vec3.fromValues(
-        this.DroneMesh.position.x,
-        this.DroneMesh.position.y,
-        this.DroneMesh.position.z
-      )
-    );
-    mat4.translate(
-      this.RotorRDroneMesh.world,
-      this.RotorRDroneMesh.world,
-      vec3.fromValues(
-        this.DroneMesh.position.x,
-        this.DroneMesh.position.y,
-        this.DroneMesh.position.z
-      )
-    );
   } else {
+    this.DroneMesh.position = {
+      x: 0,
+      y: 0,
+      z: 0,
+    };
     document.querySelector("#interactiveMode").innerHTML = "Demo";
   }
 
@@ -1239,5 +1249,16 @@ LightMapDemoScene.prototype._OnClick = function (e) {
       break;
     case "changeInteractiveMode":
       this.interactive = !this.interactive;
+      if (this.interactive) {
+        this.DroneMesh.fromRotation(180, vec3.fromValues(0, 1, 0));
+        this.DroneMesh.position = {
+          x: 0,
+          y: 0,
+          z: 0,
+        };
+
+        this.camera.position = [0.1, 3, 4];
+        this.DroneMesh.translate(vec3.fromValues(0, 0, 0));
+      }
   }
 };
