@@ -1006,6 +1006,8 @@ LightMapDemoScene.prototype._Update = function (dt) {
     this.camera.moveForward((dt / 1000) * this.MoveForwardSpeed);
     this.camera.moveUp((dt / 6000) * this.MoveForwardSpeed);
     if (this.interactive) {
+      this.DroneMesh.position.x = 0;
+      this.DroneMesh.position.y = 0;
       this.DroneMesh.position.z = 0;
       this.DroneMesh.position.z += 0.0475;
     }
@@ -1015,6 +1017,8 @@ LightMapDemoScene.prototype._Update = function (dt) {
     this.camera.moveForward((-dt / 1000) * this.MoveForwardSpeed);
     this.camera.moveUp((-dt / 6000) * this.MoveForwardSpeed);
     if (this.interactive) {
+      this.DroneMesh.position.x = 0;
+      this.DroneMesh.position.y = 0;
       this.DroneMesh.position.z = 0;
       this.DroneMesh.position.z -= 0.0475;
     }
