@@ -58,51 +58,8 @@ LightMapDemoScene.prototype.Load = function (cb) {
         var child = loadResults.Models.RoomModel.rootnode.children[i];
         var mesh = loadResults.Models.RoomModel.meshes[child.meshes];
         switch (child.name) {
-          case "Suzanne_MonkeyMesh":
-            me.MonkeyMesh = new Model(
-              me.gl,
-              mesh.vertices,
-              [].concat.apply([], mesh.faces),
-              mesh.normals,
-              vec4.fromValues(0.8, 0.8, 1.0, 1.0)
-            );
-            mat4.rotate(
-              me.MonkeyMesh.world,
-              me.MonkeyMesh.world,
-              glMatrix.toRadian(0),
-              vec3.fromValues(0, 0, 1)
-            );
-            break;
-          case "Table_TableMesh":
-            me.TableMesh = new Model(
-              me.gl,
-              mesh.vertices,
-              [].concat.apply([], mesh.faces),
-              mesh.normals,
-              vec4.fromValues(1, 0, 1, 1)
-            );
-            mat4.translate(
-              me.TableMesh.world,
-              me.TableMesh.world,
-              vec3.fromValues(1.57116, 0, 0.49672)
-            );
-            break;
-          case "Sofa_SofaMesh":
-            me.SofaMesh = new Model(
-              me.gl,
-              mesh.vertices,
-              [].concat.apply([], mesh.faces),
-              mesh.normals,
-              vec4.fromValues(0, 1, 1, 1)
-            );
-            mat4.translate(
-              me.SofaMesh.world,
-              me.SofaMesh.world,
-              vec3.fromValues(-1, 0, 0.78448)
-            );
-            break;
-          case "LightBulb_LightBulbMesh":
-            me.lightPosition = vec3.fromValues(0, 3.0, 2.58971);
+          case "LightBulb":
+            me.lightPosition = vec3.fromValues(0, 0.0, 2.58971);
             me.LightMesh = new Model(
               me.gl,
               mesh.vertices,
@@ -116,7 +73,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
               me.lightPosition
             );
             break;
-          case "Room_WallsMesh":
+          case "Room":
             me.WallsMesh = new Model(
               me.gl,
               mesh.vertices,
@@ -125,7 +82,16 @@ LightMapDemoScene.prototype.Load = function (cb) {
               vec4.fromValues(0.3, 0.3, 0.3, 1)
             );
             break;
-          case "Drone_DroneMesh":
+          case "Chair":
+            me.ChairMesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(0.8, 0.6, 0.2, 1)
+            );
+            break;
+          case "Drone":
             me.DroneMesh = new Model(
               me.gl,
               mesh.vertices,
@@ -139,7 +105,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
               z: 0,
             };
             break;
-          case "DroneRotorR_DroneMesh":
+          case "RotorRDrone":
             me.RotorRDroneMesh = new Model(
               me.gl,
               mesh.vertices,
@@ -148,7 +114,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
               vec4.fromValues(1, 1, 1, 1)
             );
             break;
-          case "DroneRotorL_DroneMesh":
+          case "RotorLDrone":
             me.RotorLDroneMesh = new Model(
               me.gl,
               mesh.vertices,
@@ -157,7 +123,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
               vec4.fromValues(1, 1, 1, 1)
             );
             break;
-          case "DroneRotorR2_DroneMesh":
+          case "RotorR2Drone":
             me.RotorR2DroneMesh = new Model(
               me.gl,
               mesh.vertices,
@@ -166,8 +132,198 @@ LightMapDemoScene.prototype.Load = function (cb) {
               vec4.fromValues(1, 1, 1, 1)
             );
             break;
-          case "DroneRotorL2_DroneMesh":
+          case "RotorL2Drone":
             me.RotorL2DroneMesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(1, 1, 1, 1)
+            );
+            break;
+          case "Monster":
+            me.MonsterMesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(0.4, 0.4, 0.4, 1)
+            );
+            me.MonsterMesh["position"] = {
+              x: 0,
+              y: 0,
+              z: 0,
+            };
+            break;
+          case "RightHandMonster":
+            me.RightHandMonsterMesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(0.4, 0.4, 0.4, 1)
+            );
+            break;
+          case "LeftHandMonster":
+            me.LeftHandMonsterMesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(0.4, 0.4, 0.4, 1)
+            );
+            break;
+          case "LeftLegMonster":
+            me.LeftLegMonsterMesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(0.4, 0.4, 0.4, 1)
+            );
+            break;
+          case "RightLegMonster":
+            me.RightLegMonsterMesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(0.4, 0.4, 0.4, 1)
+            );
+            break;
+          case "HeadMonster":
+            me.HeadMonsterMesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(0.4, 0.4, 0.4, 1)
+            );
+            break;
+          case "EyesMonster":
+            me.EyesMonsterMesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(1, 0, 0, 1)
+            );
+            break;
+          case "Bike":
+            me.BikeMesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(0.8, 0.6, 0.2, 1)
+            );
+            me.BikeMesh["position"] = {
+              x: 0,
+              y: 0,
+              z: 0,
+            };
+            break;
+          case "FrontWheelBike":
+            me.FrontWheelBikeMesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(0.2, 0.2, 0.2, 1)
+            );
+            break;
+          case "RearWheelBike":
+            me.RearWheelBikeMesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(0.2, 0.2, 0.2, 1)
+            );
+            break;
+          case "Tree1":
+            me.Tree1Mesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(0, 1, 0, 1)
+            );
+            break;
+          case "Tree2":
+            me.Tree2Mesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(0, 1, 0, 1)
+            );
+            break;
+          case "Tree3":
+            me.Tree3Mesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(0, 1, 0, 1)
+            );
+            break;
+          case "Rock1":
+            me.Rock1Mesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(1, 1, 1, 1)
+            );
+            break;
+          case "Rock2":
+            me.Rock2Mesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(1, 1, 1, 1)
+            );
+            break;
+          case "Rock3":
+            me.Rock3Mesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(1, 1, 1, 1)
+            );
+            break;
+          case "Rock4":
+            me.Rock4Mesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(1, 1, 1, 1)
+            );
+            break;
+          case "Rock5":
+            me.Rock5Mesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(1, 1, 1, 1)
+            );
+            break;
+          case "Rock6":
+            me.Rock6Mesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(1, 1, 1, 1)
+            );
+            break;
+          case "Rock7":
+            me.Rock7Mesh = new Model(
               me.gl,
               mesh.vertices,
               [].concat.apply([], mesh.faces),
@@ -178,18 +334,6 @@ LightMapDemoScene.prototype.Load = function (cb) {
         }
       }
 
-      if (!me.MonkeyMesh) {
-        cb("Failed to load monkey mesh");
-        return;
-      }
-      if (!me.TableMesh) {
-        cb("Failed to load table mesh");
-        return;
-      }
-      if (!me.SofaMesh) {
-        cb("Failed to load sofa mesh");
-        return;
-      }
       if (!me.LightMesh) {
         cb("Failed to load light mesh");
         return;
@@ -210,11 +354,72 @@ LightMapDemoScene.prototype.Load = function (cb) {
         cb("Failed to load drone mesh");
         return;
       }
+      if (!me.MonsterMesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
+      if (!me.RightHandMonsterMesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
+      if (!me.LeftHandMonsterMesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
+      if (!me.RightLegMonsterMesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
+      if (!me.LeftLegMonsterMesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
+      if (!me.Tree1Mesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
+      if (!me.Tree2Mesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
+      if (!me.Tree3Mesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
+      if (!me.Rock1Mesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
+      if (!me.Rock2Mesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
+      if (!me.Rock3Mesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
+      if (!me.Rock4Mesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
+      if (!me.Rock5Mesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
+      if (!me.Rock6Mesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
+      if (!me.Rock7Mesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
+      if (!me.ChairMesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
 
       me.Meshes = [
-        me.MonkeyMesh,
-        me.TableMesh,
-        me.SofaMesh,
         me.LightMesh,
         me.WallsMesh,
         me.DroneMesh,
@@ -222,6 +427,27 @@ LightMapDemoScene.prototype.Load = function (cb) {
         me.RotorLDroneMesh,
         me.RotorR2DroneMesh,
         me.RotorL2DroneMesh,
+        me.MonsterMesh,
+        me.RightHandMonsterMesh,
+        me.LeftHandMonsterMesh,
+        me.RightLegMonsterMesh,
+        me.LeftLegMonsterMesh,
+        me.HeadMonsterMesh,
+        me.EyesMonsterMesh,
+        me.BikeMesh,
+        me.FrontWheelBikeMesh,
+        me.RearWheelBikeMesh,
+        me.ChairMesh,
+        me.Tree1Mesh,
+        me.Tree2Mesh,
+        me.Tree3Mesh,
+        me.Rock1Mesh,
+        me.Rock2Mesh,
+        me.Rock3Mesh,
+        me.Rock4Mesh,
+        me.Rock5Mesh,
+        me.Rock6Mesh,
+        me.Rock7Mesh,
       ];
 
       //
@@ -495,15 +721,33 @@ LightMapDemoScene.prototype.Load = function (cb) {
 
 LightMapDemoScene.prototype.Unload = function () {
   this.LightMesh = null;
-  this.MonkeyMesh = null;
-  this.TableMesh = null;
-  this.SofaMesh = null;
   this.WallsMesh = null;
   this.DroneMesh = null;
   this.RotorRDroneMesh = null;
   this.RotorLDroneMesh = null;
   this.RotorR2DroneMesh = null;
   this.RotorL2DroneMesh = null;
+  this.MonsterMesh = null;
+  this.RightHandMonsterMesh = null;
+  this.LeftHandMonsterMesh = null;
+  this.RightLegMonsterMesh = null;
+  this.LeftLegMonsterMesh = null;
+  this.HeadMonsterMesh = null;
+  this.EyesMonsterMesh = null;
+  this.BikeMesh = null;
+  this.FrontWheelBikeMesh = null;
+  this.RearWheelBikeMesh = null;
+  this.ChairMesh = null;
+  this.Tree1Mesh = null;
+  this.Tree2Mesh = null;
+  this.Tree3Mesh = null;
+  this.Rock1Mesh = null;
+  this.Rock2Mesh = null;
+  this.Rock3Mesh = null;
+  this.Rock4Mesh = null;
+  this.Rock5Mesh = null;
+  this.Rock6Mesh = null;
+  this.Rock7Mesh = null;
 
   this.NoShadowProgram = null;
   this.ShadowProgram = null;
@@ -646,21 +890,6 @@ LightMapDemoScene.prototype._Update = function (dt) {
   }
 
   // Change __update in Demo Mode
-  mat4.rotateY(
-    this.MonkeyMesh.world,
-    this.MonkeyMesh.world,
-    (dt / 1000) * this.RotateSpeed
-  );
-  mat4.translate(
-    this.MonkeyMesh.world,
-    this.MonkeyMesh.world,
-    vec3.fromValues(0, -0.3, 0)
-  );
-  mat4.translate(
-    this.MonkeyMesh.world,
-    this.MonkeyMesh.world,
-    vec3.fromValues(0, 0.3, 0)
-  );
 
   // Change __update in Interactive Mode
   if (this.interactive) {
