@@ -440,8 +440,8 @@ LightMapDemoScene.prototype.Load = function (cb) {
       }
 
       me.BikeMesh.addChild([me.FrontWheelBikeMesh, me.RearWheelBikeMesh]);
+      me.HeadMonsterMesh.addChild([me.EyesMonsterMesh]);
       me.MonsterMesh.addChild([
-        me.EyesMonsterMesh,
         me.HeadMonsterMesh,
         me.RightLegMonsterMesh,
         me.LeftLegMonsterMesh,
@@ -1077,12 +1077,13 @@ LightMapDemoScene.prototype._Update = function (dt) {
   }
 
   // Change __update in Demo Mode
-  // this.RotorLDroneMesh.translate(vec3.fromValues(-0.1, 0, 0));
-  this.DroneMesh.translate(
-    vec3.fromValues(-4.11, -2.54, 0)
-  );
+  this.RotorLDroneMesh.translate(vec3.fromValues(0.01943, 0, 0.01));
+  this.RotorRDroneMesh.translate(vec3.fromValues(0.01943, 0, -0.01));
   this.RotorLDroneMesh.rotateY((dt / 6000) * this.MoveForwardSpeed);
   this.RotorRDroneMesh.rotateY((dt / 6000) * this.MoveForwardSpeed);
+
+  this.HeadMonsterMesh.translate(vec3.fromValues(0.01999, 0, 0.01));
+  this.HeadMonsterMesh.rotateY((dt / 6000) * this.MoveForwardSpeed);
 
   // Change __update in Interactive Mode
   if (this.interactive) {
