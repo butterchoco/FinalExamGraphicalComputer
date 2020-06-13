@@ -72,6 +72,19 @@ LightMapDemoScene.prototype.Load = function (cb) {
               me.LightMesh.world,
               me.lightPosition
             );
+            me.spotLightPosition = vec3.fromValues(0, 0.0, 3);
+            me.SpotLightMesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(4, 4, 4, 1)
+            );
+            mat4.translate(
+              me.SpotLightMesh.world,
+              me.SpotLightMesh.world,
+              me.spotLightPosition
+            );
             break;
           case "Room":
             me.WallsMesh = new Model(
@@ -338,6 +351,10 @@ LightMapDemoScene.prototype.Load = function (cb) {
         cb("Failed to load light mesh");
         return;
       }
+      if (!me.SpotLightMesh) {
+        cb("Failed to load spot light mesh");
+        return;
+      }
       if (!me.WallsMesh) {
         cb("Failed to load walls mesh");
         return;
@@ -421,6 +438,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
 
       me.Meshes = [
         me.LightMesh,
+        me.SpotLightMesh,
         me.WallsMesh,
         me.DroneMesh,
         me.RotorRDroneMesh,
@@ -519,6 +537,23 @@ LightMapDemoScene.prototype.Load = function (cb) {
         ),
 
         bias: me.gl.getUniformLocation(me.ShadowProgram, "bias"),
+      
+        spotLightPosition: me.gl.getUniformLocation(
+          me.ShadowProgram,
+          "spotLightPosition"
+        ),
+        spotLightShadowMap: me.gl.getUniformLocation(
+          me.ShadowProgram,
+          "spotLightShadowMap"
+        ),
+        shadowClipNearFarSpotLight: me.gl.getUniformLocation(
+          me.ShadowProgram,
+          "shadowClipNearFarSpotLight"
+        ),
+
+        bias: me.gl.getUniformLocation(me.ShadowProgram, "bias"),
+        biasSpotLight: me.gl.getUniformLocation(me.ShadowProgram, "biasSpotLight"),
+      
       };
       me.ShadowProgram.attribs = {
         vPos: me.gl.getAttribLocation(me.ShadowProgram, "vPos"),
@@ -678,6 +713,44 @@ LightMapDemoScene.prototype.Load = function (cb) {
           vec3.fromValues(0, -1, 0)
         ),
       ];
+      me.shadowMapCamerasSpotLight = [
+        // Positive X
+        new Camera(
+          me.spotLightPosition,
+          vec3.add(vec3.create(), me.spotLightPosition, vec3.fromValues(1, 0, 0)),
+          vec3.fromValues(0, -1, 0)
+        ),
+        // Negative X
+        new Camera(
+          me.spotLightPosition,
+          vec3.add(vec3.create(), me.spotLightPosition, vec3.fromValues(-1, 0, 0)),
+          vec3.fromValues(0, -1, 0)
+        ),
+        // Positive Y
+        new Camera(
+          me.spotLightPosition,
+          vec3.add(vec3.create(), me.spotLightPosition, vec3.fromValues(0, 1, 0)),
+          vec3.fromValues(0, 0, 1)
+        ),
+        // Negative Y
+        new Camera(
+          me.spotLightPosition,
+          vec3.add(vec3.create(), me.spotLightPosition, vec3.fromValues(0, -1, 0)),
+          vec3.fromValues(0, 0, -1)
+        ),
+        // Positive Z
+        new Camera(
+          me.spotLightPosition,
+          vec3.add(vec3.create(), me.spotLightPosition, vec3.fromValues(0, 0, 1)),
+          vec3.fromValues(0, -1, 0)
+        ),
+        // Negative Z
+        new Camera(
+          me.spotLightPosition,
+          vec3.add(vec3.create(), me.spotLightPosition, vec3.fromValues(0, 0, -1)),
+          vec3.fromValues(0, -1, 0)
+        ),
+      ];
       me.shadowMapViewMatrices = [
         mat4.create(),
         mat4.create(),
@@ -686,14 +759,31 @@ LightMapDemoScene.prototype.Load = function (cb) {
         mat4.create(),
         mat4.create(),
       ];
+      me.shadowMapViewMatricesSpotLight = [
+        mat4.create(),
+        mat4.create(),
+        mat4.create(),
+        mat4.create(),
+        mat4.create(),
+        mat4.create(),
+      ];
       me.shadowMapProj = mat4.create();
+      me.shadowMapProjSpotLight = mat4.create();
       me.shadowClipNearFar = vec2.fromValues(0.05, 15.0);
+      me.shadowClipNearFarSpotLight = vec2.fromValues(0.02, 7.0);
       mat4.perspective(
         me.shadowMapProj,
         glMatrix.toRadian(90),
         1.0,
         me.shadowClipNearFar[0],
         me.shadowClipNearFar[1]
+      );
+      mat4.perspective(
+        me.shadowMapProjSpotLight,
+        glMatrix.toRadian(90),
+        1.0,
+        me.shadowClipNearFarSpotLight[0],
+        me.shadowClipNearFarSpotLight[1]
       );
 
       cb();
@@ -717,10 +807,13 @@ LightMapDemoScene.prototype.Load = function (cb) {
   me.textureSize = getParameterByName("texSize") || 512;
 
   me.lightDisplacementInputAngle = 0.0;
+  me.spotLightDisplacementInputAngle = 0.0;
+
 };
 
 LightMapDemoScene.prototype.Unload = function () {
   this.LightMesh = null;
+  this.SpotLightMesh = null;
   this.WallsMesh = null;
   this.DroneMesh = null;
   this.RotorRDroneMesh = null;
@@ -767,7 +860,11 @@ LightMapDemoScene.prototype.Unload = function () {
   this.textureSize = null;
 
   this.shadowMapCameras = null;
+  this.shadowMapCamerasSpotLight = null;
+
   this.shadowMapViewMatrices = null;
+  this.shadowMapViewMatricesSpotLight = null;
+  
 };
 
 LightMapDemoScene.prototype.Begin = function () {
@@ -943,7 +1040,7 @@ LightMapDemoScene.prototype._Update = function (dt) {
     document.querySelector("#interactiveMode").innerHTML = "Demo";
   }
 
-  this.lightDisplacementInputAngle += dt / 2337;
+  this.lightDisplacementInputAngle += dt / 2000;
   var xDisplacement = Math.sin(this.lightDisplacementInputAngle) * 2.8;
 
   this.LightMesh.world[12] = xDisplacement;
@@ -953,6 +1050,17 @@ LightMapDemoScene.prototype._Update = function (dt) {
       this.LightMesh.world
     );
     this.shadowMapCameras[i].GetViewMatrix(this.shadowMapViewMatrices[i]);
+  }
+
+  this.spotLightDisplacementInputAngle += dt / 1000;
+  var xDisplacementSpotLight = Math.sin(this.spotLightDisplacementInputAngle) * 2.8;
+  this.SpotLightMesh.world[12] = xDisplacementSpotLight;
+  for (var i = 0; i < this.shadowMapCamerasSpotLight.length; i++) {
+    mat4.getTranslation(
+      this.shadowMapCamerasSpotLight[i].position,
+      this.SpotLightMesh.world
+    );
+    this.shadowMapCamerasSpotLight[i].GetViewMatrix(this.shadowMapViewMatricesSpotLight[i]);
   }
 
   this.camera.GetViewMatrix(this.viewMatrix);
@@ -1078,16 +1186,28 @@ LightMapDemoScene.prototype._Render = function () {
     this.ShadowProgram.uniforms.pointLightPosition,
     this.lightPosition
   );
+  gl.uniform3fv(
+    this.ShadowProgram.uniforms.spotLightPosition,
+    this.lightPosition
+  );
   gl.uniform2fv(
     this.ShadowProgram.uniforms.shadowClipNearFar,
     this.shadowClipNearFar
   );
+  gl.uniform2fv(
+    this.ShadowProgram.uniforms.shadowClipNearFarSpotLight,
+    this.shadowClipNearFarSpotLight
+  );
   if (this.floatExtension && this.floatLinearExtension) {
     gl.uniform1f(this.ShadowProgram.uniforms.bias, 0.0001);
+    gl.uniform1f(this.ShadowProgram.uniforms.biasSpotLight, 0.0001);
   } else {
     gl.uniform1f(this.ShadowProgram.uniforms.bias, 0.003);
+    gl.uniform1f(this.ShadowProgram.uniforms.biasSpotLight, 0.003);
   }
   gl.uniform1i(this.ShadowProgram.uniforms.lightShadowMap, 0);
+  gl.uniform1i(this.ShadowProgram.uniforms.spotLightShadowMap, 0);
+
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.shadowMapCube);
 
