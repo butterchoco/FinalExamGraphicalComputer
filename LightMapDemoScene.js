@@ -561,7 +561,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
           me.ShadowProgram,
           "lightShadowMap"
         ),
-        dirlightShadowMap: me.gl.getUniformLocation(
+        dirLightShadowMap: me.gl.getUniformLocation(
           me.ShadowProgram,
           "dirLightShadowMap"
         ),
@@ -617,8 +617,8 @@ LightMapDemoScene.prototype.Load = function (cb) {
       me.floatLinearExtension = me.gl.getExtension("OES_texture_float_linear");
 
       // directional light shadow map texture
-      me.dirShadowMap = me.gl.createTexture();
-      me.gl.bindTexture(me.gl.TEXTURE_2D, me.dirShadowMap);
+      me.dirLightShadowMap = me.gl.createTexture();
+      me.gl.bindTexture(me.gl.TEXTURE_2D, me.dirLightShadowMap);
       me.gl.texParameteri(
         me.gl.TEXTURE_2D,
         me.gl.TEXTURE_MIN_FILTER,
@@ -1100,7 +1100,7 @@ LightMapDemoScene.prototype._Generate2DShadowMap = function() {
 
   // Set GL state status
   gl.useProgram(this.ShadowMapGenProgram);
-  gl.bindTexture(gl.TEXTURE_2D, this.dirShadowMap);
+  gl.bindTexture(gl.TEXTURE_2D, this.dirLightShadowMap);
   gl.bindFramebuffer(gl.FRAMEBUFFER, this.shadowMapFramebuffer);
   gl.bindRenderbuffer(gl.RENDERBUFFER, this.shadowMapRenderbuffer);
 
@@ -1139,7 +1139,7 @@ LightMapDemoScene.prototype._Generate2DShadowMap = function() {
     gl.FRAMEBUFFER,
     gl.COLOR_ATTACHMENT0,
     gl.TEXTURE_2D,
-    this.dirShadowMap,
+    this.dirLightShadowMap,
     0
   );
   gl.framebufferRenderbuffer(
