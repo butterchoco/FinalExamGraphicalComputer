@@ -1507,6 +1507,13 @@ LightMapDemoScene.prototype._OnClick = function (e) {
 
         this.camera.position = [0.1, 3, 4];
         this.DroneMesh.translate(vec3.fromValues(0, 0, 0));
+      } else {
+        this.DroneMesh.fromRotation(0, vec3.fromValues(0, 1, 0));
+        this.DroneMesh.position = {
+          x: 0,
+          y: 0,
+          z: 0,
+        };
       }
   }
 };

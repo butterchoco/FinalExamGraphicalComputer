@@ -5,11 +5,18 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body onload="Init();">
-    <button id="changeShadingMode">Change Shading Mode</button>
-    <button id="changeInteractiveMode">Change Interactive Mode</button>
-    <div id="hud">
-      <p>Shading Mode : <span id="shadingMode"></span></p>
-      <p>Interactive Mode : <span id="interactiveMode"></span></p>
+    <div class="hudContainer">
+      <div class="description">
+        <p>
+          <strong>Shading Mode : </strong><span id="shadingMode">Shading</span>
+        </p>
+        <p>
+          <strong>Interactive Mode : </strong
+          ><span id="interactiveMode">Demo</span>
+        </p>
+      </div>
+      <button id="changeShadingMode">Change Shading Mode</button>
+      <button id="changeInteractiveMode">Change Interactive Mode</button>
     </div>
     <canvas id="gl-surface">
       Get a <a href="http://chrome.google.com">less stupid</a> browser

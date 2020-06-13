@@ -1,19 +1,52 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap");
+
+body {
+  font-family: "Roboto", sans-serif;
+}
+
 body canvas {
   margin: 0;
   padding: 0;
   position: absolute;
 }
 
-#hud {
-  background: rgb(70, 189, 197);
-  max-width: 40%;
-  padding: 1rem;
-  margin: 1rem 0;
-  border-radius: 10px;
+p {
+  margin: 5px;
 }
 
-#hud p {
-  font-weight: bold;
-  text-transform: capitalize;
+.hudContainer {
+  display: flex;
+  flex-direction: column;
+  width: 200px;
+  max-width: 50%;
+  margin: 2rem;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  position: absolute;
+  z-index: 999;
+  left: 0;
+  top: 50%;
+  transform: translate(0, -50%);
+}
+
+.hudContainer button {
+  outline: none;
+  background: rgb(152, 141, 255);
+  border: 0;
+  padding: 10px;
+  margin: 5px 0;
+}
+
+.hudContainer button:hover {
+  background: rgb(136, 125, 233);
+  color: #222;
+}
+
+.description p {
   color: white;
+  font-size: 14px;
+}
+
+.description p span {
+  text-transform: capitalize;
 }
