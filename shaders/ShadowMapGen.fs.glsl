@@ -1,28 +1,24 @@
 precision mediump float;
 
-uniform vec3 pointLightPosition;
+uniform vec3 lightPosition;
+uniform vec3 lightDirection;
 uniform vec2 shadowClipNearFar;
 
 varying vec3 fPos;
 
-const int POINTLIGHT = 0;
-const int DIRLIGHT = 1;
-const int SPOTLIGHT = 2;
-
 void main()
 {
-	int lightType = 0;
+	vec3 fromLightToFrag = (fPos - lightPosition);
 
-	vec3 fromLightToFrag = (fPos - pointLightPosition);
+	float lightFragDist = 0.0;
 
-	float lightFragDist = 1.0;
-
-	if (lightType == POINTLIGHT) {	
-		lightFragDist =
-			(length(fromLightToFrag) - shadowClipNearFar.x)
-			/
-			(shadowClipNearFar.y - shadowClipNearFar.x);
+	if (length(lightDirection) < 0.05) {
+		lightFragDist = (length(fromLightToFrag) - shadowClipNearFar.x)
+		/
+		(shadowClipNearFar.y - shadowClipNearFar.x);
+	} else {
+		lightFragDist = 1.0;
 	}
-
+	
 	gl_FragColor = vec4(lightFragDist, lightFragDist, lightFragDist, 1.0);
 }
