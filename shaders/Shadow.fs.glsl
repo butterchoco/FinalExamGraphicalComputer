@@ -1,10 +1,20 @@
 precision mediump float;
 
 uniform vec3 pointLightPosition;
+uniform vec3 dirLightDirection;
+
+uniform vec3 pointLightColor;
+uniform vec3 dirLightColor;
 uniform vec4 meshColor;
 
+uniform float pointLightBase;
+uniform float dirLightBase;
+
 uniform samplerCube lightShadowMap;
+uniform sampler2D dirLightShadowMap;
 uniform vec2 shadowClipNearFar;
+
+uniform vec4 dirShadowMapView;
 
 uniform float bias;
 
@@ -22,10 +32,37 @@ void main()
 
 	float shadowMapValue = textureCube(lightShadowMap, -toLightNormal).r;
 
-	float lightIntensity = 0.6;
+	float pointLightInt = 0.0;
+	float dirLightInt = 0.0;
 	if ((shadowMapValue + bias) >= fromLightToFrag) {
-		lightIntensity += 0.4 * max(dot(fNorm, toLightNormal), 0.0);
+		pointLightInt = pointLightBase * max(dot(fNorm, toLightNormal), 0.0);
 	}
 
-	gl_FragColor = vec4(meshColor.rgb * lightIntensity, meshColor.a);
+	// 2D shadow map calculation
+	vec3 texCoord = dirShadowMapView.xyz;
+	bool inRange =
+		texCoord.x >= 0.0 &&
+		texCoord.x <= 1.0 &&
+		texCoord.y >= 0.0 &&
+		texCoord.y <= 1.0;
+
+	//float dirShadowMapValue = texture2D(dirLightShadowMap, texCoord.xy).r;
+	float dirShadowMapValue = 0.0;
+	float dirShadowDepth = texCoord.z + bias;
+
+	if (inRange && dirShadowDepth >= dirShadowMapValue) {
+		dirLightInt = dirLightBase * max(dot(fNorm, dirLightDirection), 0.0);
+	}
+
+	vec3 finalLightColor = pointLightColor * pointLightInt + dirLightColor * dirLightInt;
+
+	vec3 finalColor = vec3(
+		meshColor.r * finalLightColor.r,
+		meshColor.g * finalLightColor.g,
+		meshColor.b * finalLightColor.b
+	);
+
+	gl_FragColor = vec4(finalColor, meshColor.a);
 }
+
+//float calculateDistance()

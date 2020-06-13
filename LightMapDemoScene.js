@@ -14,6 +14,27 @@ LightMapDemoScene.prototype.Load = function (cb) {
 
   var me = this;
 
+  /*
+  README: Setup all variables here
+  */
+
+  // light position
+  me.pointLightPosition = vec3.fromValues(0, 2.0, 1.5);
+
+  // light direction
+  me.dirLightDirection = vec3.normalize(
+    vec3.create(),
+    vec3.fromValues(0.6, 1.0, 0.3)
+  );
+
+  // light intensity
+  me.pointLightInt = 0.6;
+  me.dirLightInt = 1.0;
+
+  // light color
+  me.pointLightColor = vec3.fromValues(1.0, 1.0, 1.0);
+  me.dirLightColor = vec3.fromValues(1.0, 1.0, 0.5);
+
   async.parallel(
     {
       Models: function (callback) {
@@ -59,7 +80,6 @@ LightMapDemoScene.prototype.Load = function (cb) {
         var mesh = loadResults.Models.RoomModel.meshes[child.meshes];
         switch (child.name) {
           case "LightBulb":
-            me.lightPosition = vec3.fromValues(0, 0.0, 2.58971);
             me.LightMesh = new Model(
               me.gl,
               mesh.vertices,
@@ -70,7 +90,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
             mat4.translate(
               me.LightMesh.world,
               me.LightMesh.world,
-              me.lightPosition
+              me.pointLightPosition
             );
             break;
           case "Room":
@@ -524,16 +544,38 @@ LightMapDemoScene.prototype.Load = function (cb) {
           me.ShadowProgram,
           "pointLightPosition"
         ),
+        dirLightDirection: me.gl.getUniformLocation(
+          me.ShadowProgram,
+          "dirLightDirection"
+        ),
+        pointLightColor: me.gl.getUniformLocation(
+          me.ShadowProgram,
+          "pointLightColor"
+        ),
+        dirLightColor: me.gl.getUniformLocation(
+          me.ShadowProgram,
+          "dirLightColor"
+        ),
         meshColor: me.gl.getUniformLocation(me.ShadowProgram, "meshColor"),
         lightShadowMap: me.gl.getUniformLocation(
           me.ShadowProgram,
           "lightShadowMap"
+        ),
+        dirLightShadowMap: me.gl.getUniformLocation(
+          me.ShadowProgram,
+          "dirLightShadowMap"
         ),
         shadowClipNearFar: me.gl.getUniformLocation(
           me.ShadowProgram,
           "shadowClipNearFar"
         ),
 
+        dirShadowMapView: me.gl.getUniformLocation(
+          me.ShadowProgram,
+          "dirShadowMapView"
+        ),
+        pointLightInt: me.gl.getUniformLocation(me.ShadowProgram, "pointLightBase"),
+        dirLightInt: me.gl.getUniformLocation(me.ShadowProgram, "dirLightBase"),
         bias: me.gl.getUniformLocation(me.ShadowProgram, "bias"),
       };
       me.ShadowProgram.attribs = {
@@ -546,9 +588,13 @@ LightMapDemoScene.prototype.Load = function (cb) {
         mView: me.gl.getUniformLocation(me.ShadowMapGenProgram, "mView"),
         mWorld: me.gl.getUniformLocation(me.ShadowMapGenProgram, "mWorld"),
 
-        pointLightPosition: me.gl.getUniformLocation(
+        lightPosition: me.gl.getUniformLocation(
           me.ShadowMapGenProgram,
-          "pointLightPosition"
+          "lightPosition"
+        ),
+        lightDirection: me.gl.getUniformLocation(
+          me.ShadowMapGenProgram,
+          "lightDirection"
         ),
         shadowClipNearFar: me.gl.getUniformLocation(
           me.ShadowMapGenProgram,
@@ -566,6 +612,63 @@ LightMapDemoScene.prototype.Load = function (cb) {
         console.log(image);
       });
 
+      // texture parameters
+      me.floatExtension = me.gl.getExtension("OES_texture_float");
+      me.floatLinearExtension = me.gl.getExtension("OES_texture_float_linear");
+
+      // directional light shadow map texture
+      me.dirLightShadowMap = me.gl.createTexture();
+      me.gl.bindTexture(me.gl.TEXTURE_2D, me.dirLightShadowMap);
+      me.gl.texParameteri(
+        me.gl.TEXTURE_2D,
+        me.gl.TEXTURE_MIN_FILTER,
+        me.gl.LINEAR
+      );
+      me.gl.texParameteri(
+        me.gl.TEXTURE_2D,
+        me.gl.TEXTURE_MAG_FILTER,
+        me.gl.LINEAR
+      );
+      me.gl.texParameteri(
+        me.gl.TEXTURE_2D,
+        me.gl.TEXTURE_WRAP_S,
+        me.gl.MIRRORED_REPEAT
+      );
+      me.gl.texParameteri(
+        me.gl.TEXTURE_2D,
+        me.gl.TEXTURE_WRAP_T,
+        me.gl.MIRRORED_REPEAT
+      );
+
+      if (me.floatExtension && me.floatLinearExtension) {
+        me.gl.texImage2D(
+          me.gl.TEXTURE_2D,
+          0,
+          me.gl.RGBA,
+          me.textureSize,
+          me.textureSize,
+          0,
+          me.gl.RGBA,
+          me.gl.FLOAT,
+          null
+        );
+      } else {
+        me.gl.texImage2D(
+          me.gl.TEXTURE_2D,
+          0,
+          me.gl.RGBA,
+          me.textureSize,
+          me.textureSize,
+          0,
+          me.gl.RGBA,
+          me.gl.UNSIGNED_BYTE,
+          null
+        );
+      }
+
+      me.gl.bindTexture(me.gl.TEXTURE_2D, null);
+
+      // point light shadow cubemap texture
       me.shadowMapCube = me.gl.createTexture();
       me.gl.bindTexture(me.gl.TEXTURE_CUBE_MAP, me.shadowMapCube);
       me.gl.texParameteri(
@@ -588,8 +691,6 @@ LightMapDemoScene.prototype.Load = function (cb) {
         me.gl.TEXTURE_WRAP_T,
         me.gl.MIRRORED_REPEAT
       );
-      me.floatExtension = me.gl.getExtension("OES_texture_float");
-      me.floatLinearExtension = me.gl.getExtension("OES_texture_float_linear");
       if (me.floatExtension && me.floatLinearExtension) {
         for (var i = 0; i < 6; i++) {
           me.gl.texImage2D(
@@ -656,41 +757,42 @@ LightMapDemoScene.prototype.Load = function (cb) {
         85.0
       );
 
+      // point light shadow cubemap projection
       me.shadowMapCameras = [
         // Positive X
         new Camera(
-          me.lightPosition,
-          vec3.add(vec3.create(), me.lightPosition, vec3.fromValues(1, 0, 0)),
+          me.pointLightPosition,
+          vec3.add(vec3.create(), me.pointLightPosition, vec3.fromValues(1, 0, 0)),
           vec3.fromValues(0, -1, 0)
         ),
         // Negative X
         new Camera(
-          me.lightPosition,
-          vec3.add(vec3.create(), me.lightPosition, vec3.fromValues(-1, 0, 0)),
+          me.pointLightPosition,
+          vec3.add(vec3.create(), me.pointLightPosition, vec3.fromValues(-1, 0, 0)),
           vec3.fromValues(0, -1, 0)
         ),
         // Positive Y
         new Camera(
-          me.lightPosition,
-          vec3.add(vec3.create(), me.lightPosition, vec3.fromValues(0, 1, 0)),
+          me.pointLightPosition,
+          vec3.add(vec3.create(), me.pointLightPosition, vec3.fromValues(0, 1, 0)),
           vec3.fromValues(0, 0, 1)
         ),
         // Negative Y
         new Camera(
-          me.lightPosition,
-          vec3.add(vec3.create(), me.lightPosition, vec3.fromValues(0, -1, 0)),
+          me.pointLightPosition,
+          vec3.add(vec3.create(), me.pointLightPosition, vec3.fromValues(0, -1, 0)),
           vec3.fromValues(0, 0, -1)
         ),
         // Positive Z
         new Camera(
-          me.lightPosition,
-          vec3.add(vec3.create(), me.lightPosition, vec3.fromValues(0, 0, 1)),
+          me.pointLightPosition,
+          vec3.add(vec3.create(), me.pointLightPosition, vec3.fromValues(0, 0, 1)),
           vec3.fromValues(0, -1, 0)
         ),
         // Negative Z
         new Camera(
-          me.lightPosition,
-          vec3.add(vec3.create(), me.lightPosition, vec3.fromValues(0, 0, -1)),
+          me.pointLightPosition,
+          vec3.add(vec3.create(), me.pointLightPosition, vec3.fromValues(0, 0, -1)),
           vec3.fromValues(0, -1, 0)
         ),
       ];
@@ -711,6 +813,24 @@ LightMapDemoScene.prototype.Load = function (cb) {
         me.shadowClipNearFar[0],
         me.shadowClipNearFar[1]
       );
+
+      // directional light shadow map projection
+      me.dirShadowMapCam = new Camera(
+          vec3.create(),
+          me.dirLightDirection,
+          vec3.fromValues(0, 1, 0)
+      );
+      me.dirShadowMapClip = vec2.fromValues(-20.0, 20.0);
+      me.dirShadowMapProj = mat4.ortho(
+        mat4.create(),
+        me.dirShadowMapClip[0],
+        me.dirShadowMapClip[1],
+        me.dirShadowMapClip[0],
+        me.dirShadowMapClip[1],
+        me.dirShadowMapClip[0],
+        me.dirShadowMapClip[1]
+      );
+      me.dirShadowMapView = mat4.create();
 
       cb();
     }
@@ -770,7 +890,14 @@ LightMapDemoScene.prototype.Unload = function () {
   this.ShadowMapGenProgram = null;
 
   this.camera = null;
-  this.lightPosition = null;
+  this.pointLightPosition = null;
+  this.dirLightDirection = null;
+
+  this.pointLightInt = null;
+  this.dirLightInt = null;
+
+  this.pointLightColor = null;
+  this.dirLightColor = null;
 
   this.Meshes = null;
 
@@ -816,6 +943,7 @@ LightMapDemoScene.prototype.Begin = function () {
     me._Update(dt);
     previousFrame = currentFrameTime;
 
+    me._Generate2DShadowMap();
     me._GenerateShadowMap();
     me._Render();
     me.nextFrameHandle = requestAnimationFrame(loop);
@@ -967,6 +1095,101 @@ LightMapDemoScene.prototype._Update = function (dt) {
   this.camera.GetViewMatrix(this.viewMatrix);
 };
 
+LightMapDemoScene.prototype._Generate2DShadowMap = function() {
+  var gl = this.gl;
+
+  // Set GL state status
+  gl.useProgram(this.ShadowMapGenProgram);
+  gl.bindTexture(gl.TEXTURE_2D, this.dirLightShadowMap);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, this.shadowMapFramebuffer);
+  gl.bindRenderbuffer(gl.RENDERBUFFER, this.shadowMapRenderbuffer);
+
+  gl.viewport(0, 0, this.textureSize, this.textureSize);
+  gl.enable(gl.DEPTH_TEST);
+  gl.enable(gl.CULL_FACE);
+
+  // Set per-frame uniforms
+  gl.uniform2fv(
+    this.ShadowMapGenProgram.uniforms.shadowClipNearFar,
+    this.dirShadowMapClip
+  );
+  gl.uniform3fv(
+    this.ShadowMapGenProgram.uniforms.lightPosition,
+    vec3.create()
+  );
+  gl.uniform3fv(
+    this.ShadowMapGenProgram.uniforms.lightDirection,
+    this.dirLightDirection
+  );
+  gl.uniformMatrix4fv(
+    this.ShadowMapGenProgram.uniforms.mProj,
+    gl.FALSE,
+    this.dirShadowMapProj
+  );
+
+  // Set per light uniforms
+  gl.uniformMatrix4fv(
+    this.ShadowMapGenProgram.uniforms.mView,
+    gl.FALSE,
+    this.dirShadowMapCam.GetViewMatrix(this.dirShadowMapView)
+  );
+
+  // Set framebuffer destination
+  gl.framebufferTexture2D(
+    gl.FRAMEBUFFER,
+    gl.COLOR_ATTACHMENT0,
+    gl.TEXTURE_2D,
+    this.dirLightShadowMap,
+    0
+  );
+  gl.framebufferRenderbuffer(
+    gl.FRAMEBUFFER,
+    gl.DEPTH_ATTACHMENT,
+    gl.RENDERBUFFER,
+    this.shadowMapRenderbuffer
+  );
+
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+  // Draw meshes
+  for (var j = 0; j < this.Meshes.length; j++) {
+    // Per object uniforms
+    gl.uniformMatrix4fv(
+      this.ShadowMapGenProgram.uniforms.mWorld,
+      gl.FALSE,
+      this.Meshes[j].world
+    );
+
+    // Set attributes
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.Meshes[j].vbo);
+    gl.vertexAttribPointer(
+      this.ShadowMapGenProgram.attribs.vPos,
+      3,
+      gl.FLOAT,
+      gl.FALSE,
+      0,
+      0
+    );
+    gl.enableVertexAttribArray(this.ShadowMapGenProgram.attribs.vPos);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.Meshes[j].ibo);
+    gl.drawElements(
+      this.shadingMode,
+      this.Meshes[j].nPoints,
+      gl.UNSIGNED_SHORT,
+      0
+    );
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+  }
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+  gl.bindTexture(gl.TEXTURE_2D, null);
+}
+
 LightMapDemoScene.prototype._GenerateShadowMap = function () {
   var gl = this.gl;
 
@@ -986,8 +1209,12 @@ LightMapDemoScene.prototype._GenerateShadowMap = function () {
     this.shadowClipNearFar
   );
   gl.uniform3fv(
-    this.ShadowMapGenProgram.uniforms.pointLightPosition,
-    this.lightPosition
+    this.ShadowMapGenProgram.uniforms.lightPosition,
+    this.pointLightPosition
+  );
+  gl.uniform3fv(
+    this.ShadowMapGenProgram.uniforms.lightDirection,
+    vec3.create()
   );
   gl.uniformMatrix4fv(
     this.ShadowMapGenProgram.uniforms.mProj,
@@ -1083,22 +1310,44 @@ LightMapDemoScene.prototype._Render = function () {
     gl.FALSE,
     this.viewMatrix
   );
+  gl.uniformMatrix4fv(
+    this.ShadowProgram.uniforms.dirShadowMapView,
+    gl.FALSE,
+    this.dirShadowMapView
+  );
   gl.uniform3fv(
     this.ShadowProgram.uniforms.pointLightPosition,
-    this.lightPosition
+    this.pointLightPosition
+  );
+  gl.uniform3fv(
+    this.ShadowProgram.uniforms.dirLightDirection,
+    this.dirLightDirection
+  );
+  gl.uniform3fv(
+    this.ShadowProgram.uniforms.pointLightColor,
+    this.pointLightColor
+  );
+  gl.uniform3fv(
+    this.ShadowProgram.uniforms.dirLightColor,
+    this.dirLightColor
   );
   gl.uniform2fv(
     this.ShadowProgram.uniforms.shadowClipNearFar,
     this.shadowClipNearFar
   );
+  gl.uniform1f(this.ShadowProgram.uniforms.pointLightInt, this.pointLightInt);
+  gl.uniform1f(this.ShadowProgram.uniforms.dirLightInt, this.dirLightInt);
   if (this.floatExtension && this.floatLinearExtension) {
     gl.uniform1f(this.ShadowProgram.uniforms.bias, 0.0001);
   } else {
     gl.uniform1f(this.ShadowProgram.uniforms.bias, 0.003);
   }
   gl.uniform1i(this.ShadowProgram.uniforms.lightShadowMap, 0);
+  gl.uniform1i(this.ShadowProgram.uniforms.dirLightShadowMap, 1);
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.shadowMapCube);
+  gl.activeTexture(gl.TEXTURE1);
+  gl.bindTexture(gl.TEXTURE_2D, this.dirLightShadowMap);
 
   // Draw meshes
   for (var i = 0; i < this.Meshes.length; i++) {
@@ -1258,6 +1507,13 @@ LightMapDemoScene.prototype._OnClick = function (e) {
 
         this.camera.position = [0.1, 3, 4];
         this.DroneMesh.translate(vec3.fromValues(0, 0, 0));
+      } else {
+        this.DroneMesh.fromRotation(0, vec3.fromValues(0, 1, 0));
+        this.DroneMesh.position = {
+          x: 0,
+          y: 0,
+          z: 0,
+        };
       }
   }
 };
