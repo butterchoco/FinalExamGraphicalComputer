@@ -1,7 +1,18 @@
 "use strict";
 
-// Array flattening trick from http://stackoverflow.com/questions/10865025/merge-flatten-a-multidimensional-array-in-javascript
+/*
+Created By:
+- Ahmad Supriyanto
+- Ardanto Finkan Septa
+- Ariq Munif
+- Muhammad Farras Hakim
+- Razaqa Dhafin Haffiyan
 
+References: 
+- Array flattening trick from http://stackoverflow.com/questions/10865025/merge-flatten-a-multidimensional-array-in-javascript
+- https://www.youtube.com/watch?v=UnFudL21Uq4
+- https://webglfundamentals.org/webgl/lessons/webgl-3d-lighting-directional.html
+*/
 var LightMapDemoScene = function (gl) {
   this.gl = gl;
   this.shadingMode = gl.TRIANGLES;
@@ -10,7 +21,7 @@ var LightMapDemoScene = function (gl) {
 };
 
 LightMapDemoScene.prototype.Load = function (cb) {
-  console.log("Loading demo scene");
+  console.log("Loading LightMapDemoScene");
 
   var me = this;
 
@@ -40,7 +51,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
       Models: function (callback) {
         async.map(
           {
-            RoomModel: "Room.json",
+            RoomModel: "Room2.json",
           },
           LoadJSONResource,
           callback
@@ -941,7 +952,7 @@ LightMapDemoScene.prototype.Unload = function () {
 };
 
 LightMapDemoScene.prototype.Begin = function () {
-  console.log("Beginning demo scene");
+  console.log("Beginning LightMapDemoScene");
 
   var me = this;
 
@@ -1007,9 +1018,7 @@ LightMapDemoScene.prototype._Update = function (dt) {
     this.camera.moveUp((dt / 6000) * this.MoveForwardSpeed);
     if (this.interactive) {
       this.DroneMesh.position.x = 0;
-      this.DroneMesh.position.y = 0;
-      this.DroneMesh.position.z = 0;
-      this.DroneMesh.position.z += 0.0475;
+      this.DroneMesh.position.z = 0.0475;
     }
   }
 
@@ -1018,25 +1027,21 @@ LightMapDemoScene.prototype._Update = function (dt) {
     this.camera.moveUp((-dt / 6000) * this.MoveForwardSpeed);
     if (this.interactive) {
       this.DroneMesh.position.x = 0;
-      this.DroneMesh.position.y = 0;
-      this.DroneMesh.position.z = 0;
-      this.DroneMesh.position.z -= 0.0475;
+      this.DroneMesh.position.z = -0.0475;
     }
   }
 
   if (this.PressedKeys.Right && !this.PressedKeys.Left) {
     this.camera.moveRight((dt / 1000) * this.MoveForwardSpeed);
     if (this.interactive) {
-      this.DroneMesh.position.x = 0;
-      this.DroneMesh.position.x -= 0.0475;
+      this.DroneMesh.position.x = -0.0475;
     }
   }
 
   if (this.PressedKeys.Left && !this.PressedKeys.Right) {
     this.camera.moveRight((-dt / 1000) * this.MoveForwardSpeed);
     if (this.interactive) {
-      this.DroneMesh.position.x = 0;
-      this.DroneMesh.position.x += 0.0475;
+      this.DroneMesh.position.x = 0.0475;
     }
   }
 
@@ -1081,13 +1086,6 @@ LightMapDemoScene.prototype._Update = function (dt) {
   }
 
   // Change __update in Demo Mode
-  this.RotorLDroneMesh.translate(vec3.fromValues(0.01943, 0, 0.01));
-  this.RotorRDroneMesh.translate(vec3.fromValues(0.01943, 0, -0.01));
-  this.RotorLDroneMesh.rotateY((dt / 6000) * this.MoveForwardSpeed);
-  this.RotorRDroneMesh.rotateY((dt / 6000) * this.MoveForwardSpeed);
-
-  this.HeadMonsterMesh.translate(vec3.fromValues(0.01999, 0, 0.01));
-  this.HeadMonsterMesh.rotateY((dt / 6000) * this.MoveForwardSpeed);
 
   // Change __update in Interactive Mode
   if (this.interactive) {
@@ -1112,6 +1110,13 @@ LightMapDemoScene.prototype._Update = function (dt) {
     );
     document.querySelector("#interactiveMode").innerHTML = "interactive";
   } else {
+    this.RotorLDroneMesh.translate(vec3.fromValues(0.01943, 0, 0.01));
+    this.RotorRDroneMesh.translate(vec3.fromValues(0.01943, 0, -0.01));
+    this.RotorLDroneMesh.rotateY((dt / 6000) * this.MoveForwardSpeed);
+    this.RotorRDroneMesh.rotateY((dt / 6000) * this.MoveForwardSpeed);
+
+    this.HeadMonsterMesh.translate(vec3.fromValues(0.01999, 0, 0.01));
+    this.HeadMonsterMesh.rotateY((dt / 6000) * this.MoveForwardSpeed);
     this.DroneMesh.position = {
       x: 0,
       y: 0,
