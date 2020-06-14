@@ -84,6 +84,7 @@ var LightMapDemoScene = function (gl) {
   this.shadingMode = gl.TRIANGLES;
   this.wireframe = false;
   this.interactive = false;
+  this.spotLightOff = false;
 };
 
 LightMapDemoScene.prototype.Load = function (cb) {
@@ -95,22 +96,31 @@ LightMapDemoScene.prototype.Load = function (cb) {
   README: Setup all variables here
   */
 
-  // light position
+  // point light position
   me.pointLightPosition = vec3.fromValues(0, 2.0, 1.5);
+  
+  // spot light position
+  me.spotLightPosition = vec3.fromValues(-17.5, -2, -2);
 
   // light direction
   me.dirLightDirection = vec3.normalize(
     vec3.create(),
     vec3.fromValues(0.6, 1.0, 0.3)
   );
+  me.spotLightDirection = vec3.fromValues(-4, 5, -2);
 
   // light intensity
   me.pointLightInt = 0.6;
   me.dirLightInt = 1.0;
+  me.spotLightInt = 0.8;
 
   // light color
   me.pointLightColor = vec3.fromValues(1.0, 1.0, 1.0);
+  me.spotLightColor = vec3.fromValues(1.0, 0.4, 0.2);
   me.dirLightColor = vec3.fromValues(1.0, 1.0, 0.5);
+
+  // spot light degree
+  me.spotLightLimitArea = 360 * Math.PI / 180;
 
   async.parallel(
     {
@@ -173,6 +183,18 @@ LightMapDemoScene.prototype.Load = function (cb) {
               me.LightMesh.world,
               me.LightMesh.world,
               me.pointLightPosition
+            );
+            me.SpotLightMesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(4, 4, 4, 1)
+            );
+            mat4.translate(
+              me.SpotLightMesh.world,
+              me.SpotLightMesh.world,
+              me.spotLightPosition
             );
             break;
           case "Room":
@@ -371,6 +393,11 @@ LightMapDemoScene.prototype.Load = function (cb) {
               mesh.normals,
               vec4.fromValues(0, 1, 0, 1)
             );
+            mat4.translate(
+              me.Tree3Mesh.world,
+              me.Tree3Mesh.world,
+              vec3.fromValues(-2, 0, 0)
+            );
             break;
           case "Rock1":
             me.Rock1Mesh = new Model(
@@ -446,8 +473,9 @@ LightMapDemoScene.prototype.Load = function (cb) {
               mesh.vertices,
               [].concat.apply([], mesh.faces),
               mesh.normals,
-              vec4.fromValues(0.4, 0.2, 0.0, 1.0)
+              vec4.fromValues(1.0, 1.0, 1.0, 1.0)
             );
+            me.floor_buffer = createTextureCoordBuffer(me.gl, mesh.texturecoords[0])
             break;
           case "Mountain":
             me.Mountain1Mesh = new Model(
@@ -486,6 +514,10 @@ LightMapDemoScene.prototype.Load = function (cb) {
         cb("Failed to load light mesh");
         return;
       }
+      if (!me.SpotLightMesh) {
+        cb("Failed to load light mesh");
+        return;
+      }
       if (!me.WallsMesh) {
         cb("Failed to load walls mesh");
         return;
@@ -503,67 +535,67 @@ LightMapDemoScene.prototype.Load = function (cb) {
         return;
       }
       if (!me.MonsterMesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load monster mesh");
         return;
       }
       if (!me.RightHandMonsterMesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load monster mesh");
         return;
       }
       if (!me.LeftHandMonsterMesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load monster mesh");
         return;
       }
       if (!me.RightLegMonsterMesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load monster mesh");
         return;
       }
       if (!me.LeftLegMonsterMesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load monster mesh");
         return;
       }
       if (!me.Tree1Mesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load tree mesh");
         return;
       }
       if (!me.Tree2Mesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load tree mesh");
         return;
       }
       if (!me.Tree3Mesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load tree mesh");
         return;
       }
       if (!me.Rock1Mesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load rock mesh");
         return;
       }
       if (!me.Rock2Mesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load rock mesh");
         return;
       }
       if (!me.Rock3Mesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load rock mesh");
         return;
       }
       if (!me.Rock4Mesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load rock mesh");
         return;
       }
       if (!me.Rock5Mesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load rock mesh");
         return;
       }
       if (!me.Rock6Mesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load rock mesh");
         return;
       }
       if (!me.Rock7Mesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load rock mesh");
         return;
       }
       if (!me.ChairMesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load chair mesh");
         return;
       }
       if (!me.FloorMesh) {
@@ -571,15 +603,15 @@ LightMapDemoScene.prototype.Load = function (cb) {
         return;
       }
       if (!me.Mountain1Mesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load mountain mesh");
         return;
       }
       if (!me.Mountain2Mesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load mountain mesh");
         return;
       }
       if (!me.Mountain3Mesh) {
-        cb("Failed to load drone mesh");
+        cb("Failed to load mountain mesh");
         return;
       }
 
@@ -628,10 +660,11 @@ LightMapDemoScene.prototype.Load = function (cb) {
         me.Rock5Mesh,
         me.Rock6Mesh,
         me.Rock7Mesh,
-        me.FloorMesh,
+        me.FloorMesh,      
         me.Mountain1Mesh,
         me.Mountain2Mesh,
         me.Mountain3Mesh,
+        me.SpotLightMesh
       ];
 
       //
@@ -692,19 +725,34 @@ LightMapDemoScene.prototype.Load = function (cb) {
           me.ShadowProgram,
           "pointLightPosition"
         ),
+        spotLightPosition: me.gl.getUniformLocation(
+          me.ShadowProgram,
+          "spotLightPosition"
+        ),
         dirLightDirection: me.gl.getUniformLocation(
           me.ShadowProgram,
           "dirLightDirection"
+        ),
+        spotLightDirection: me.gl.getUniformLocation(
+          me.ShadowProgram,
+          "u_lightDirection"
         ),
         pointLightColor: me.gl.getUniformLocation(
           me.ShadowProgram,
           "pointLightColor"
         ),
+        spotLightColor: me.gl.getUniformLocation(
+          me.ShadowProgram,
+          "spotLightColor"
+        ),
         dirLightColor: me.gl.getUniformLocation(
           me.ShadowProgram,
           "dirLightColor"
         ),
-        meshColor: me.gl.getUniformLocation(me.ShadowProgram, "meshColor"),
+        meshColor: me.gl.getUniformLocation(
+          me.ShadowProgram,
+          "meshColor"
+        ),
         lightShadowMap: me.gl.getUniformLocation(
           me.ShadowProgram,
           "lightShadowMap"
@@ -717,7 +765,6 @@ LightMapDemoScene.prototype.Load = function (cb) {
           me.ShadowProgram,
           "shadowClipNearFar"
         ),
-
         dirShadowMapView: me.gl.getUniformLocation(
           me.ShadowProgram,
           "dirShadowMapView"
@@ -726,10 +773,26 @@ LightMapDemoScene.prototype.Load = function (cb) {
           me.ShadowProgram,
           "pointLightBase"
         ),
-        dirLightInt: me.gl.getUniformLocation(me.ShadowProgram, "dirLightBase"),
-        bias: me.gl.getUniformLocation(me.ShadowProgram, "bias"),
-        
-        textureLocation: me.gl.getUniformLocation(me.ShadowProgram, "u_texture"),
+        spotLightInt: me.gl.getUniformLocation(
+          me.ShadowProgram,
+          "spotLightBase"
+        ),
+        dirLightInt: me.gl.getUniformLocation(
+          me.ShadowProgram,
+          "dirLightBase"
+        ),
+        bias: me.gl.getUniformLocation(
+          me.ShadowProgram,
+          "bias"
+        ),
+        spotLightLimitArea: me.gl.getUniformLocation(
+          me.ShadowProgram,
+          "u_limit"
+        ),
+        textureLocation: me.gl.getUniformLocation(
+          me.ShadowProgram,
+          "u_texture"
+        ),
       };
 
       me.ShadowProgram.attribs = {
@@ -1097,12 +1160,17 @@ LightMapDemoScene.prototype.Unload = function () {
 
   this.camera = null;
   this.pointLightPosition = null;
+  this.spotLightPosition = null;
+
   this.dirLightDirection = null;
+  this.spotLightDirection = null;
 
   this.pointLightInt = null;
+  this.spotLightInt = null;
   this.dirLightInt = null;
 
   this.pointLightColor = null;
+  this.spotLightColor = null;
   this.dirLightColor = null;
 
   this.Meshes = null;
@@ -1114,6 +1182,8 @@ LightMapDemoScene.prototype.Unload = function () {
 
   this.shadowMapCube = null;
   this.textureSize = null;
+
+  this.spotLightLimitArea = null;
 
   this.shadowMapCameras = null;
   this.shadowMapViewMatrices = null;
@@ -1130,6 +1200,9 @@ LightMapDemoScene.prototype.Begin = function () {
   const changeInteractiveModeBtn = document.getElementById(
     "changeInteractiveMode"
   );
+  const changeLightModeBtn = document.getElementById(
+    "changeLightMode"
+  );
 
   // Attach event listeners
   this.__ResizeWindowListener = this._OnResizeWindow.bind(this);
@@ -1142,6 +1215,7 @@ LightMapDemoScene.prototype.Begin = function () {
   AddEvent(window, "keyup", this.__KeyUpWindowListener);
   AddEvent(changeShadingModeBtn, "click", this.__ModeClickListener);
   AddEvent(changeInteractiveModeBtn, "click", this.__ModeClickListener);
+  AddEvent(changeLightModeBtn, "click", this.__ModeClickListener);
 
   // Render Loop
   var previousFrame = performance.now();
@@ -1253,6 +1327,12 @@ LightMapDemoScene.prototype._Update = function (dt) {
   } else {
     document.querySelector("#shadingMode").innerHTML = "shading";
     this.shadingMode = this.gl.TRIANGLES;
+  }
+  
+  if (this.spotLightOff) {
+    document.querySelector("#lightMode").innerHTML = "off";
+  } else {
+    document.querySelector("#lightMode").innerHTML = "on";
   }
 
   // Change __update in Demo Mode
@@ -1532,20 +1612,40 @@ LightMapDemoScene.prototype._Render = function () {
     this.pointLightPosition
   );
   gl.uniform3fv(
+    this.ShadowProgram.uniforms.spotLightPosition,
+    this.spotLightPosition
+  );
+  gl.uniform3fv(
     this.ShadowProgram.uniforms.dirLightDirection,
     this.dirLightDirection
+  );
+  gl.uniform3fv(
+    this.ShadowProgram.uniforms.spotLightDirection,
+    this.spotLightDirection
   );
   gl.uniform3fv(
     this.ShadowProgram.uniforms.pointLightColor,
     this.pointLightColor
   );
-  gl.uniform3fv(this.ShadowProgram.uniforms.dirLightColor, this.dirLightColor);
+  gl.uniform3fv(
+    this.ShadowProgram.uniforms.spotLightColor,
+    this.spotLightColor
+  );
+  gl.uniform3fv(
+    this.ShadowProgram.uniforms.dirLightColor,
+    this.dirLightColor
+  );
+  gl.uniform1f(
+    this.ShadowProgram.uniforms.spotLightLimitArea,
+    this.spotLightLimitArea
+  );
   gl.uniform2fv(
     this.ShadowProgram.uniforms.shadowClipNearFar,
     this.shadowClipNearFar
   );
   gl.uniform1f(this.ShadowProgram.uniforms.pointLightInt, this.pointLightInt);
   gl.uniform1f(this.ShadowProgram.uniforms.dirLightInt, this.dirLightInt);
+  gl.uniform1f(this.ShadowProgram.uniforms.spotLightInt, this.spotLightInt);
   if (this.floatExtension && this.floatLinearExtension) {
     gl.uniform1f(this.ShadowProgram.uniforms.bias, 0.0001);
   } else {
@@ -1587,6 +1687,9 @@ LightMapDemoScene.prototype._Render = function () {
     } else if (i >= 21 && i <= 25) {
       texture_selected = this.rock_texture
       coord_selected = this.rock_buffer[i-21]
+    } else if (i == 28) {
+      texture_selected = this.land_texture
+      coord_selected = this.floor_buffer
     } else if (i == 29) {
       texture_selected = this.grass_texture
       coord_selected = this.mountain_buffer
@@ -1779,6 +1882,14 @@ LightMapDemoScene.prototype._OnClick = function (e) {
   switch (e.target.id) {
     case "changeShadingMode":
       this.wireframe = !this.wireframe;
+      break;
+    case "changeLightMode":
+      this.spotLightOff = !this.spotLightOff;
+      if (this.spotLightOff) {
+        this.spotLightInt = 0.0;
+      } else {
+        this.spotLightInt = 0.8;
+      }
       break;
     case "changeInteractiveMode":
       this.interactive = !this.interactive;
