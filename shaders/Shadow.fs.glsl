@@ -1,18 +1,24 @@
 precision mediump float;
 
 uniform vec3 pointLightPosition;
+uniform vec3 spotLightPosition;
 uniform vec3 dirLightDirection;
 
 uniform vec3 pointLightColor;
+uniform vec3 spotLightColor;
 uniform vec3 dirLightColor;
 uniform vec4 meshColor;
 
 uniform float pointLightBase;
+uniform float spotLightBase;
 uniform float dirLightBase;
 
 uniform samplerCube lightShadowMap;
 uniform sampler2D dirLightShadowMap;
+uniform samplerCube spotLightShadowMap;
+
 uniform vec2 shadowClipNearFar;
+uniform vec2 shadowClipNearFarSL;
 
 uniform vec4 dirShadowMapView;
 
@@ -24,18 +30,31 @@ varying vec3 fNorm;
 void main()
 {
 	vec3 toLightNormal = normalize(pointLightPosition - fPos);
+	vec3 toSpotLightNormal = normalize(spotLightPosition - fPos);
 
 	float fromLightToFrag =
 		(length(fPos - pointLightPosition) - shadowClipNearFar.x)
 		/
 		(shadowClipNearFar.y - shadowClipNearFar.x);
 
+	float fromSpotLightToFrag =
+		(length(fPos - spotLightPosition) - shadowClipNearFarSL.x)
+		/
+		(shadowClipNearFarSL.y - shadowClipNearFarSL.x);
+
 	float shadowMapValue = textureCube(lightShadowMap, -toLightNormal).r;
+	float shadowMapValueSL = textureCube(spotLightShadowMap, -toSpotLightNormal).r;
 
 	float pointLightInt = 0.0;
 	float dirLightInt = 0.0;
+	float spotLightInt = 0.0;
+
 	if ((shadowMapValue + bias) >= fromLightToFrag) {
 		pointLightInt = pointLightBase * max(dot(fNorm, toLightNormal), 0.0);
+	}
+
+	if ((shadowMapValueSL + bias) >= fromSpotLightToFrag) {
+		spotLightInt = spotLightBase * max(dot(fNorm, toSpotLightNormal), 0.0);
 	}
 
 	// 2D shadow map calculation
@@ -54,7 +73,7 @@ void main()
 		dirLightInt = dirLightBase * max(dot(fNorm, dirLightDirection), 0.0);
 	}
 
-	vec3 finalLightColor = pointLightColor * pointLightInt + dirLightColor * dirLightInt;
+	vec3 finalLightColor = pointLightColor * pointLightInt + dirLightColor * dirLightInt + spotLightColor * spotLightInt;
 
 	vec3 finalColor = vec3(
 		meshColor.r * finalLightColor.r,
