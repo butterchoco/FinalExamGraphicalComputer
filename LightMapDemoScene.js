@@ -446,9 +446,8 @@ LightMapDemoScene.prototype.Load = function (cb) {
               mesh.vertices,
               [].concat.apply([], mesh.faces),
               mesh.normals,
-              vec4.fromValues(1, 1, 1, 1)
+              vec4.fromValues(0.4, 0.2, 0.0, 1.0)
             );
-            me.floor_buffer = createTextureCoordBuffer(me.gl, mesh.texturecoords[0])
             break;
           case "Mountain":
             me.Mountain1Mesh = new Model(
@@ -1588,9 +1587,6 @@ LightMapDemoScene.prototype._Render = function () {
     } else if (i >= 21 && i <= 25) {
       texture_selected = this.rock_texture
       coord_selected = this.rock_buffer[i-21]
-    } else if (i == 28) {
-      texture_selected = this.land_texture
-      coord_selected = this.floor_buffer
     } else if (i == 29) {
       texture_selected = this.grass_texture
       coord_selected = this.mountain_buffer
@@ -1641,6 +1637,8 @@ LightMapDemoScene.prototype._Render = function () {
       // Turn on the texcoord attribute
       gl.enableVertexAttribArray(this.ShadowProgram.attribs.texcoordLocation);
       // END MODIFY
+    } else {
+     //  gl.disableVertexAttribArray(this.ShadowProgram.attribs.texcoordLocation);
     }
     
 
