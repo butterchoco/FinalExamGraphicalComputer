@@ -85,6 +85,8 @@ LightMapDemoScene.prototype.Load = function (cb) {
       // Create Model objects
       //
 
+      me.texture_array = [];
+
       for (
         var i = 0;
         i < loadResults.Models.RoomModel.rootnode.children.length;
@@ -92,6 +94,8 @@ LightMapDemoScene.prototype.Load = function (cb) {
       ) {
         var child = loadResults.Models.RoomModel.rootnode.children[i];
         var mesh = loadResults.Models.RoomModel.meshes[child.meshes];
+        console.log(child.name)
+        console.log(mesh)
         switch (child.name) {
           case "LightBulb":
             me.LightMesh = new Model(
@@ -137,6 +141,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
               mesh.normals,
               vec4.fromValues(0.8, 0.6, 0.2, 1)
             );
+            me.texture_array = mesh.texturecoords
             break;
           case "Drone":
             me.DroneMesh = new Model(
@@ -689,10 +694,14 @@ LightMapDemoScene.prototype.Load = function (cb) {
         dirLightInt: me.gl.getUniformLocation(me.ShadowProgram, "dirLightBase"),
         spotLightInt: me.gl.getUniformLocation(me.ShadowProgram, "spotLightBase"),
         bias: me.gl.getUniformLocation(me.ShadowProgram, "bias"),
+        
+        textureLocation: me.gl.getUniformLocation(me.ShadowProgram, "u_texture"),
       };
+
       me.ShadowProgram.attribs = {
         vPos: me.gl.getAttribLocation(me.ShadowProgram, "vPos"),
         vNorm: me.gl.getAttribLocation(me.ShadowProgram, "vNorm"),
+        texcoordLocation: me.gl.getAttribLocation(me.ShadowProgram, "a_texcoord"),
       };
 
       me.ShadowMapGenProgram.uniforms = {
@@ -915,6 +924,51 @@ LightMapDemoScene.prototype.Load = function (cb) {
       me.gl.bindTexture(me.gl.TEXTURE_CUBE_MAP, null);
       me.gl.bindRenderbuffer(me.gl.RENDERBUFFER, null);
       me.gl.bindFramebuffer(me.gl.FRAMEBUFFER, null);
+
+      // MODIFY texture
+      me.textcoords_buffer = me.gl.createBuffer();
+      me.gl.bindBuffer(me.gl.ARRAY_BUFFER, me.textcoords_buffer);
+      // Set Texcoords.
+      me.gl.bufferData(
+        me.gl.ARRAY_BUFFER,
+        new Float32Array(me.texture_array[0]),
+         me.gl.STATIC_DRAW);
+         
+      // END MODIFY TEXTURE
+
+
+      // BEGIN LOAD IMAGE
+      // Create a texture.
+      me.brick_texture = me.gl.createTexture();
+      me.gl.bindTexture(me.gl.TEXTURE_2D, me.brick_texture);
+      
+      // Fill the texture with a 1x1 blue pixel.
+      me.gl.texImage2D(me.gl.TEXTURE_2D, 0, me.gl.RGBA, 1, 1, 0, me.gl.RGBA, me.gl.UNSIGNED_BYTE,
+                    new Uint8Array([255, 0, 0, 255]));
+      
+      // Asynchronously load an image
+      var image = new Image();
+      image.src = "bricks.png";
+      image.addEventListener('load', function() {
+        // Now that the image has loaded make copy it to the texture.
+        me.gl.bindTexture(me.gl.TEXTURE_2D, me.brick_texture);
+        me.gl.texImage2D(me.gl.TEXTURE_2D, 0, me.gl.RGBA, me.gl.RGBA,me.gl.UNSIGNED_BYTE, image);
+        me.gl.generateMipmap(me.gl.TEXTURE_2D);
+      });
+
+      me.gl.bindTexture(me.gl.TEXTURE_CUBE_MAP, null);
+      me.gl.bindRenderbuffer(me.gl.RENDERBUFFER, null);
+      me.gl.bindFramebuffer(me.gl.FRAMEBUFFER, null);
+
+
+
+      // at init time make a 1x1 white texture.
+      me.white_texture = me.gl.createTexture();
+      me.gl.bindTexture(me.gl.TEXTURE_2D, me.white_texture);
+      me.gl.texImage2D(me.gl.TEXTURE_2D, 0, me.gl.RGBA, 1, 1, 0, me.gl.RGBA, me.gl.UNSIGNED_BYTE,
+      new Uint8Array([255, 255, 255, 255]));
+
+      // END LOAD IMAGE
 
       //
       // Logical Values
@@ -1182,6 +1236,8 @@ LightMapDemoScene.prototype.Unload = function () {
 
   this.shadowMapCamerasSL = null;
   this.shadowMapViewMatricesSL = null;
+  this.brick_texture = null;
+  this.white_texture = null;
 };
 
 LightMapDemoScene.prototype.Begin = function () {
@@ -1730,6 +1786,17 @@ LightMapDemoScene.prototype._Render = function () {
   gl.activeTexture(gl.TEXTURE1);
   gl.bindTexture(gl.TEXTURE_2D, this.dirLightShadowMap);
 
+  // MODIFY
+
+  gl.uniform1i(this.ShadowProgram.uniforms.textureLocation, 2);
+
+
+  gl.activeTexture(gl.TEXTURE2);
+  // Bind the texture to texture unit 2
+  gl.bindTexture(gl.TEXTURE_2D, this.brick_texture);
+  // Tell the shader to use texture unit 0 for u_texture
+  // END MODIFY
+
   // Draw meshes
   for (var i = 0; i < this.Meshes.length; i++) {
     // Per object uniforms
@@ -1738,7 +1805,26 @@ LightMapDemoScene.prototype._Render = function () {
       gl.FALSE,
       this.Meshes[i].world
     );
-    gl.uniform4fv(this.ShadowProgram.uniforms.meshColor, this.Meshes[i].color);
+
+    if (i == 17) {
+      // MODIFY
+
+      gl.uniform4fv(this.ShadowProgram.uniforms.meshColor, new Float32Array([1, 1, 1, 1]));
+      
+      gl.activeTexture(gl.TEXTURE2);
+      // Bind the texture to texture unit 2
+      gl.bindTexture(gl.TEXTURE_2D, this.brick_texture);
+      // Tell the shader to use texture unit 0 for u_texture
+      // END MODIFY
+    } else {
+      gl.uniform4fv(this.ShadowProgram.uniforms.meshColor, this.Meshes[i].color);
+
+      gl.activeTexture(gl.TEXTURE2);
+      // Bind the texture to texture unit 2
+      gl.bindTexture(gl.TEXTURE_2D, this.white_texture);
+      // Tell the shader to use texture unit 0 for u_texture
+      // END MODIFY
+    }
 
     // Set attributes
     gl.bindBuffer(gl.ARRAY_BUFFER, this.Meshes[i].vbo);
@@ -1763,9 +1849,28 @@ LightMapDemoScene.prototype._Render = function () {
     );
     gl.enableVertexAttribArray(this.ShadowProgram.attribs.vNorm);
 
+    // MODIFY
+  // bind the texcoord buffer.
+  gl.bindBuffer(gl.ARRAY_BUFFER, this.textcoords_buffer);
+
+  // Tell the texcoord attribute how to get data out of texcoordBuffer (ARRAY_BUFFER)
+  var size = 2;          // 1 components per iteration
+  var type = gl.FLOAT;   // the data is 32bit floats
+  var normalize = gl.FALSE; // don't normalize the data
+  var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+  var offset = 0;        // start at the beginning of the buffer
+  gl.vertexAttribPointer(
+    this.ShadowProgram.attribs.texcoordLocation, size, type, normalize, stride, offset);
+
+  // Turn on the texcoord attribute
+  gl.enableVertexAttribArray(this.ShadowProgram.attribs.texcoordLocation);
+  
+  // END MODIFY
+
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.Meshes[i].ibo);
+
     gl.drawElements(
       this.shadingMode,
       this.Meshes[i].nPoints,
