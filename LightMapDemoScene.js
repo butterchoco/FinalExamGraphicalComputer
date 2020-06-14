@@ -1,7 +1,18 @@
 "use strict";
 
-// Array flattening trick from http://stackoverflow.com/questions/10865025/merge-flatten-a-multidimensional-array-in-javascript
+/*
+Created By:
+- Ahmad Supriyanto
+- Ardanto Finkan Septa
+- Ariq Munif
+- Muhammad Farras Hakim
+- Razaqa Dhafin Haffiyan
 
+References: 
+- Array flattening trick from http://stackoverflow.com/questions/10865025/merge-flatten-a-multidimensional-array-in-javascript
+- https://www.youtube.com/watch?v=UnFudL21Uq4
+- https://webglfundamentals.org/webgl/lessons/webgl-3d-lighting-directional.html
+*/
 var LightMapDemoScene = function (gl) {
   this.gl = gl;
   this.shadingMode = gl.TRIANGLES;
@@ -10,7 +21,7 @@ var LightMapDemoScene = function (gl) {
 };
 
 LightMapDemoScene.prototype.Load = function (cb) {
-  console.log("Loading demo scene");
+  console.log("Loading LightMapDemoScene");
 
   var me = this;
 
@@ -43,7 +54,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
       Models: function (callback) {
         async.map(
           {
-            RoomModel: "Room.json",
+            RoomModel: "Room2.json",
           },
           LoadJSONResource,
           callback
@@ -460,8 +471,8 @@ LightMapDemoScene.prototype.Load = function (cb) {
       }
 
       me.BikeMesh.addChild([me.FrontWheelBikeMesh, me.RearWheelBikeMesh]);
+      me.HeadMonsterMesh.addChild([me.EyesMonsterMesh]);
       me.MonsterMesh.addChild([
-        me.EyesMonsterMesh,
         me.HeadMonsterMesh,
         me.RightLegMonsterMesh,
         me.LeftLegMonsterMesh,
@@ -615,7 +626,10 @@ LightMapDemoScene.prototype.Load = function (cb) {
           me.ShadowProgram,
           "dirShadowMapView"
         ),
-        pointLightInt: me.gl.getUniformLocation(me.ShadowProgram, "pointLightBase"),
+        pointLightInt: me.gl.getUniformLocation(
+          me.ShadowProgram,
+          "pointLightBase"
+        ),
         dirLightInt: me.gl.getUniformLocation(me.ShadowProgram, "dirLightBase"),
         spotLightInt: me.gl.getUniformLocation(me.ShadowProgram, "spotLightBase"),
         bias: me.gl.getUniformLocation(me.ShadowProgram, "bias"),
@@ -871,37 +885,61 @@ LightMapDemoScene.prototype.Load = function (cb) {
         // Positive X
         new Camera(
           me.pointLightPosition,
-          vec3.add(vec3.create(), me.pointLightPosition, vec3.fromValues(1, 0, 0)),
+          vec3.add(
+            vec3.create(),
+            me.pointLightPosition,
+            vec3.fromValues(1, 0, 0)
+          ),
           vec3.fromValues(0, -1, 0)
         ),
         // Negative X
         new Camera(
           me.pointLightPosition,
-          vec3.add(vec3.create(), me.pointLightPosition, vec3.fromValues(-1, 0, 0)),
+          vec3.add(
+            vec3.create(),
+            me.pointLightPosition,
+            vec3.fromValues(-1, 0, 0)
+          ),
           vec3.fromValues(0, -1, 0)
         ),
         // Positive Y
         new Camera(
           me.pointLightPosition,
-          vec3.add(vec3.create(), me.pointLightPosition, vec3.fromValues(0, 1, 0)),
+          vec3.add(
+            vec3.create(),
+            me.pointLightPosition,
+            vec3.fromValues(0, 1, 0)
+          ),
           vec3.fromValues(0, 0, 1)
         ),
         // Negative Y
         new Camera(
           me.pointLightPosition,
-          vec3.add(vec3.create(), me.pointLightPosition, vec3.fromValues(0, -1, 0)),
+          vec3.add(
+            vec3.create(),
+            me.pointLightPosition,
+            vec3.fromValues(0, -1, 0)
+          ),
           vec3.fromValues(0, 0, -1)
         ),
         // Positive Z
         new Camera(
           me.pointLightPosition,
-          vec3.add(vec3.create(), me.pointLightPosition, vec3.fromValues(0, 0, 1)),
+          vec3.add(
+            vec3.create(),
+            me.pointLightPosition,
+            vec3.fromValues(0, 0, 1)
+          ),
           vec3.fromValues(0, -1, 0)
         ),
         // Negative Z
         new Camera(
           me.pointLightPosition,
-          vec3.add(vec3.create(), me.pointLightPosition, vec3.fromValues(0, 0, -1)),
+          vec3.add(
+            vec3.create(),
+            me.pointLightPosition,
+            vec3.fromValues(0, 0, -1)
+          ),
           vec3.fromValues(0, -1, 0)
         ),
       ];
@@ -980,9 +1018,9 @@ LightMapDemoScene.prototype.Load = function (cb) {
 
       // directional light shadow map projection
       me.dirShadowMapCam = new Camera(
-          vec3.create(),
-          me.dirLightDirection,
-          vec3.fromValues(0, 1, 0)
+        vec3.create(),
+        me.dirLightDirection,
+        vec3.fromValues(0, 1, 0)
       );
       me.dirShadowMapClip = vec2.fromValues(-20.0, 20.0);
       me.dirShadowMapProj = mat4.ortho(
@@ -1087,7 +1125,7 @@ LightMapDemoScene.prototype.Unload = function () {
 };
 
 LightMapDemoScene.prototype.Begin = function () {
-  console.log("Beginning demo scene");
+  console.log("Beginning LightMapDemoScene");
 
   var me = this;
 
@@ -1150,33 +1188,33 @@ LightMapDemoScene.prototype.End = function () {
 LightMapDemoScene.prototype._Update = function (dt) {
   if (this.PressedKeys.Forward && !this.PressedKeys.Back) {
     this.camera.moveForward((dt / 1000) * this.MoveForwardSpeed);
+    this.camera.moveUp((dt / 6000) * this.MoveForwardSpeed);
     if (this.interactive) {
-      this.DroneMesh.position.z = 0;
-      this.DroneMesh.position.z += 0.0475;
+      this.DroneMesh.position.x = 0;
+      this.DroneMesh.position.z = 0.0475;
     }
   }
 
   if (this.PressedKeys.Back && !this.PressedKeys.Forward) {
     this.camera.moveForward((-dt / 1000) * this.MoveForwardSpeed);
+    this.camera.moveUp((-dt / 6000) * this.MoveForwardSpeed);
     if (this.interactive) {
-      this.DroneMesh.position.z = 0;
-      this.DroneMesh.position.z -= 0.0475;
+      this.DroneMesh.position.x = 0;
+      this.DroneMesh.position.z = -0.0475;
     }
   }
 
   if (this.PressedKeys.Right && !this.PressedKeys.Left) {
     this.camera.moveRight((dt / 1000) * this.MoveForwardSpeed);
     if (this.interactive) {
-      this.DroneMesh.position.x = 0;
-      this.DroneMesh.position.x -= 0.0475;
+      this.DroneMesh.position.x = -0.0475;
     }
   }
 
   if (this.PressedKeys.Left && !this.PressedKeys.Right) {
     this.camera.moveRight((-dt / 1000) * this.MoveForwardSpeed);
     if (this.interactive) {
-      this.DroneMesh.position.x = 0;
-      this.DroneMesh.position.x += 0.0475;
+      this.DroneMesh.position.x = 0.0475;
     }
   }
 
@@ -1245,6 +1283,13 @@ LightMapDemoScene.prototype._Update = function (dt) {
     );
     document.querySelector("#interactiveMode").innerHTML = "interactive";
   } else {
+    this.RotorLDroneMesh.translate(vec3.fromValues(0.01943, 0, 0.01));
+    this.RotorRDroneMesh.translate(vec3.fromValues(0.01943, 0, -0.01));
+    this.RotorLDroneMesh.rotateY((dt / 6000) * this.MoveForwardSpeed);
+    this.RotorRDroneMesh.rotateY((dt / 6000) * this.MoveForwardSpeed);
+
+    this.HeadMonsterMesh.translate(vec3.fromValues(0.01999, 0, 0.01));
+    this.HeadMonsterMesh.rotateY((dt / 6000) * this.MoveForwardSpeed);
     this.DroneMesh.position = {
       x: 0,
       y: 0,
@@ -1280,7 +1325,7 @@ LightMapDemoScene.prototype._Update = function (dt) {
   this.camera.GetViewMatrix(this.viewMatrix);
 };
 
-LightMapDemoScene.prototype._Generate2DShadowMap = function() {
+LightMapDemoScene.prototype._Generate2DShadowMap = function () {
   var gl = this.gl;
 
   // Set GL state status
@@ -1298,10 +1343,7 @@ LightMapDemoScene.prototype._Generate2DShadowMap = function() {
     this.ShadowMapGenProgram.uniforms.shadowClipNearFar,
     this.dirShadowMapClip
   );
-  gl.uniform3fv(
-    this.ShadowMapGenProgram.uniforms.lightPosition,
-    vec3.create()
-  );
+  gl.uniform3fv(this.ShadowMapGenProgram.uniforms.lightPosition, vec3.create());
   gl.uniform3fv(
     this.ShadowMapGenProgram.uniforms.lightDirection,
     this.dirLightDirection
@@ -1373,7 +1415,7 @@ LightMapDemoScene.prototype._Generate2DShadowMap = function() {
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.bindRenderbuffer(gl.RENDERBUFFER, null);
   gl.bindTexture(gl.TEXTURE_2D, null);
-}
+};
 
 LightMapDemoScene.prototype._GenerateShadowMap = function () {
   var gl = this.gl;
