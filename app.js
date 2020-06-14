@@ -16,7 +16,7 @@ function Init() {
     return;
   }
 
-  Demo = new LightMapDemoScene(gl);
+  Demo = new Scene(gl);
   Demo.Load(function (demoLoadError) {
     if (demoLoadError) {
       alert("Could not load the demo - see console for more details");
