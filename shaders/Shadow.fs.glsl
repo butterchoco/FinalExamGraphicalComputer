@@ -21,6 +21,10 @@ uniform float bias;
 varying vec3 fPos;
 varying vec3 fNorm;
 
+varying vec2 v_texcoord;
+uniform sampler2D u_texture;
+
+
 void main()
 {
 	vec3 toLightNormal = normalize(pointLightPosition - fPos);
@@ -62,7 +66,10 @@ void main()
 		meshColor.b * finalLightColor.b
 	);
 
-	gl_FragColor = vec4(finalColor, meshColor.a);
+	// gl_FragColor = vec4(finalColor, meshColor.a);
+
+
+	gl_FragColor = texture2D(u_texture, v_texcoord) * vec4(finalColor, meshColor.a);
 }
 
 //float calculateDistance()
