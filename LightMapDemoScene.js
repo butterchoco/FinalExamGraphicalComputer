@@ -51,7 +51,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
       Models: function (callback) {
         async.map(
           {
-            RoomModel: "Room2.json",
+            RoomModel: "Room.json",
           },
           LoadJSONResource,
           callback
@@ -367,6 +367,42 @@ LightMapDemoScene.prototype.Load = function (cb) {
               vec4.fromValues(1, 1, 1, 1)
             );
             break;
+          case "Floor":
+            me.FloorMesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(1, 1, 1, 1)
+            );
+            break;
+          case "Mountain":
+            me.Mountain1Mesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(1, 1, 1, 1)
+            );
+            break;
+          case "Mountain.001":
+            me.Mountain2Mesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(1, 1, 1, 1)
+            );
+            break;
+          case "Mountain.002":
+            me.Mountain3Mesh = new Model(
+              me.gl,
+              mesh.vertices,
+              [].concat.apply([], mesh.faces),
+              mesh.normals,
+              vec4.fromValues(1, 1, 1, 1)
+            );
+            break;
         }
       }
 
@@ -454,6 +490,22 @@ LightMapDemoScene.prototype.Load = function (cb) {
         cb("Failed to load drone mesh");
         return;
       }
+      if (!me.FloorMesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
+      if (!me.Mountain1Mesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
+      if (!me.Mountain2Mesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
+      if (!me.Mountain3Mesh) {
+        cb("Failed to load drone mesh");
+        return;
+      }
 
       me.BikeMesh.addChild([me.FrontWheelBikeMesh, me.RearWheelBikeMesh]);
       me.HeadMonsterMesh.addChild([me.EyesMonsterMesh]);
@@ -500,6 +552,10 @@ LightMapDemoScene.prototype.Load = function (cb) {
         me.Rock5Mesh,
         me.Rock6Mesh,
         me.Rock7Mesh,
+        me.FloorMesh,
+        me.Mountain1Mesh,
+        me.Mountain2Mesh,
+        me.Mountain3Mesh,
       ];
 
       //
@@ -976,6 +1032,10 @@ LightMapDemoScene.prototype.Unload = function () {
   this.Rock5Mesh = null;
   this.Rock6Mesh = null;
   this.Rock7Mesh = null;
+  this.FloorMesh = null;
+  this.Mountain1Mesh = null;
+  this.Mountain2Mesh = null;
+  this.Mountain3Mesh = null;
 
   this.NoShadowProgram = null;
   this.ShadowProgram = null;
