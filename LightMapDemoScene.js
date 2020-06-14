@@ -13,6 +13,72 @@ References:
 - https://www.youtube.com/watch?v=UnFudL21Uq4
 - https://webglfundamentals.org/webgl/lessons/webgl-3d-lighting-directional.html
 */
+//
+// Initialize a texture and load an image.
+// When the image finished loading copy it into the texture.
+//
+function loadTexture(gl, url) {
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+
+  // Because images have to be download over the internet
+  // they might take a moment until they are ready.
+  // Until then put a single pixel in the texture so we can
+  // use it immediately. When the image has finished downloading
+  // we'll update the texture with the contents of the image.
+  const level = 0;
+  const internalFormat = gl.RGBA;
+  const width = 1;
+  const height = 1;
+  const border = 0;
+  const srcFormat = gl.RGBA;
+  const srcType = gl.UNSIGNED_BYTE;
+  const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
+  gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                width, height, border, srcFormat, srcType,
+                pixel);
+
+  const image = new Image();
+  image.onload = function() {
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                  srcFormat, srcType, image);
+
+    // WebGL1 has different requirements for power of 2 images
+    // vs non power of 2 images so check if the image is a
+    // power of 2 in both dimensions.
+    if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+       // Yes, it's a power of 2. Generate mips.
+       gl.generateMipmap(gl.TEXTURE_2D);
+    } else {
+       // No, it's not a power of 2. Turn off mips and set
+       // wrapping to clamp to edge
+       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    }
+  };
+  image.src = url;
+
+  return texture;
+}
+
+function isPowerOf2(value) {
+  return (value & (value - 1)) == 0;
+}
+
+function createTextureCoordBuffer(gl, texturecoord) {
+  var buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  // Set Texcoords.
+  gl.bufferData(
+  gl.ARRAY_BUFFER,
+  new Float32Array(texturecoord),
+  gl.STATIC_DRAW);
+
+  return buffer
+}
+
 var LightMapDemoScene = function (gl) {
   this.gl = gl;
   this.shadingMode = gl.TRIANGLES;
@@ -83,6 +149,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
       //
 
       me.texture_array = [];
+      me.rock_buffer = [0, 0, 0, 0, 0];
 
       for (
         var i = 0;
@@ -92,7 +159,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
         var child = loadResults.Models.RoomModel.rootnode.children[i];
         var mesh = loadResults.Models.RoomModel.meshes[child.meshes];
         console.log(child.name)
-        console.log(mesh)
+        console.log(mesh.texturecoords)
         switch (child.name) {
           case "LightBulb":
             me.LightMesh = new Model(
@@ -125,7 +192,8 @@ LightMapDemoScene.prototype.Load = function (cb) {
               mesh.normals,
               vec4.fromValues(0.8, 0.6, 0.2, 1)
             );
-            me.texture_array = mesh.texturecoords
+            // MODIFY texture
+            me.textcoords_buffer = createTextureCoordBuffer(me.gl, mesh.texturecoords[0])
             break;
           case "Drone":
             me.DroneMesh = new Model(
@@ -312,6 +380,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
               mesh.normals,
               vec4.fromValues(1, 1, 1, 1)
             );
+            me.rock_buffer[0] = createTextureCoordBuffer(me.gl, mesh.texturecoords[0])
             break;
           case "Rock2":
             me.Rock2Mesh = new Model(
@@ -321,6 +390,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
               mesh.normals,
               vec4.fromValues(1, 1, 1, 1)
             );
+            me.rock_buffer[1] = createTextureCoordBuffer(me.gl, mesh.texturecoords[0])
             break;
           case "Rock3":
             me.Rock3Mesh = new Model(
@@ -330,6 +400,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
               mesh.normals,
               vec4.fromValues(1, 1, 1, 1)
             );
+            me.rock_buffer[2] = createTextureCoordBuffer(me.gl, mesh.texturecoords[0])
             break;
           case "Rock4":
             me.Rock4Mesh = new Model(
@@ -339,6 +410,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
               mesh.normals,
               vec4.fromValues(1, 1, 1, 1)
             );
+            me.rock_buffer[3] = createTextureCoordBuffer(me.gl, mesh.texturecoords[0])
             break;
           case "Rock5":
             me.Rock5Mesh = new Model(
@@ -348,6 +420,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
               mesh.normals,
               vec4.fromValues(1, 1, 1, 1)
             );
+            me.rock_buffer[4] = createTextureCoordBuffer(me.gl, mesh.texturecoords[0])
             break;
           case "Rock6":
             me.Rock6Mesh = new Model(
@@ -375,6 +448,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
               mesh.normals,
               vec4.fromValues(1, 1, 1, 1)
             );
+            me.floor_buffer = createTextureCoordBuffer(me.gl, mesh.texturecoords[0])
             break;
           case "Mountain":
             me.Mountain1Mesh = new Model(
@@ -384,7 +458,8 @@ LightMapDemoScene.prototype.Load = function (cb) {
               mesh.normals,
               vec4.fromValues(1, 1, 1, 1)
             );
-            break;
+            // MODIFY texture
+            me.mountain_buffer = createTextureCoordBuffer(me.gl, mesh.texturecoords[0])
           case "Mountain.001":
             me.Mountain2Mesh = new Model(
               me.gl,
@@ -393,6 +468,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
               mesh.normals,
               vec4.fromValues(1, 1, 1, 1)
             );
+            me.mountain_buffer1 = createTextureCoordBuffer(me.gl, mesh.texturecoords[0])
             break;
           case "Mountain.002":
             me.Mountain3Mesh = new Model(
@@ -402,6 +478,7 @@ LightMapDemoScene.prototype.Load = function (cb) {
               mesh.normals,
               vec4.fromValues(1, 1, 1, 1)
             );
+            me.mountain_buffer2 = createTextureCoordBuffer(me.gl, mesh.texturecoords[0])
             break;
         }
       }
@@ -816,36 +893,14 @@ LightMapDemoScene.prototype.Load = function (cb) {
       me.gl.bindRenderbuffer(me.gl.RENDERBUFFER, null);
       me.gl.bindFramebuffer(me.gl.FRAMEBUFFER, null);
 
-      // MODIFY texture
-      me.textcoords_buffer = me.gl.createBuffer();
-      me.gl.bindBuffer(me.gl.ARRAY_BUFFER, me.textcoords_buffer);
-      // Set Texcoords.
-      me.gl.bufferData(
-        me.gl.ARRAY_BUFFER,
-        new Float32Array(me.texture_array[0]),
-         me.gl.STATIC_DRAW);
-         
-      // END MODIFY TEXTURE
-
-
       // BEGIN LOAD IMAGE
       // Create a texture.
-      me.brick_texture = me.gl.createTexture();
-      me.gl.bindTexture(me.gl.TEXTURE_2D, me.brick_texture);
-      
-      // Fill the texture with a 1x1 blue pixel.
-      me.gl.texImage2D(me.gl.TEXTURE_2D, 0, me.gl.RGBA, 1, 1, 0, me.gl.RGBA, me.gl.UNSIGNED_BYTE,
-                    new Uint8Array([255, 0, 0, 255]));
-      
-      // Asynchronously load an image
-      var image = new Image();
-      image.src = "bricks.png";
-      image.addEventListener('load', function() {
-        // Now that the image has loaded make copy it to the texture.
-        me.gl.bindTexture(me.gl.TEXTURE_2D, me.brick_texture);
-        me.gl.texImage2D(me.gl.TEXTURE_2D, 0, me.gl.RGBA, me.gl.RGBA,me.gl.UNSIGNED_BYTE, image);
-        me.gl.generateMipmap(me.gl.TEXTURE_2D);
-      });
+      me.brick_texture = loadTexture(me.gl, 'bricks.png')
+      me.grass_texture = loadTexture(me.gl, 'grass2.jpg')
+      me.gravel_texture = loadTexture(me.gl, 'gravel.jpg')
+      me.rock_texture = loadTexture(me.gl, 'rock.jpg')
+      me.land_texture = loadTexture(me.gl, 'land.png')
+
 
       me.gl.bindTexture(me.gl.TEXTURE_CUBE_MAP, null);
       me.gl.bindRenderbuffer(me.gl.RENDERBUFFER, null);
@@ -1514,7 +1569,9 @@ LightMapDemoScene.prototype._Render = function () {
   gl.bindTexture(gl.TEXTURE_2D, this.brick_texture);
   // Tell the shader to use texture unit 0 for u_texture
   // END MODIFY
-
+  var coord_selected = null;
+  var texture_selected = null;
+  var with_texture = null;
   // Draw meshes
   for (var i = 0; i < this.Meshes.length; i++) {
     // Per object uniforms
@@ -1523,15 +1580,37 @@ LightMapDemoScene.prototype._Render = function () {
       gl.FALSE,
       this.Meshes[i].world
     );
-
+    with_texture = true
+    
     if (i == 17) {
-      // MODIFY
+      texture_selected = this.brick_texture
+      coord_selected = this.textcoords_buffer
+    } else if (i >= 21 && i <= 25) {
+      texture_selected = this.rock_texture
+      coord_selected = this.rock_buffer[i-21]
+    } else if (i == 28) {
+      texture_selected = this.land_texture
+      coord_selected = this.floor_buffer
+    } else if (i == 29) {
+      texture_selected = this.grass_texture
+      coord_selected = this.mountain_buffer
+    } else if (i == 30) {
+      texture_selected = this.grass_texture
+      coord_selected = this.mountain_buffer1
+    } else if (i == 31) {
+      texture_selected = this.grass_texture
+      coord_selected = this.mountain_buffer2
+    } else {
+      with_texture = false;
+    }
 
+    // MODIFY
+    if (with_texture) {
       gl.uniform4fv(this.ShadowProgram.uniforms.meshColor, new Float32Array([1, 1, 1, 1]));
       
       gl.activeTexture(gl.TEXTURE2);
       // Bind the texture to texture unit 2
-      gl.bindTexture(gl.TEXTURE_2D, this.brick_texture);
+      gl.bindTexture(gl.TEXTURE_2D, texture_selected);
       // Tell the shader to use texture unit 0 for u_texture
       // END MODIFY
     } else {
@@ -1544,6 +1623,27 @@ LightMapDemoScene.prototype._Render = function () {
       // END MODIFY
     }
 
+    
+    if (with_texture) {
+      // MODIFY
+      // bind the texcoord buffer.
+      gl.bindBuffer(gl.ARRAY_BUFFER, coord_selected);
+
+      // Tell the texcoord attribute how to get data out of texcoordBuffer (ARRAY_BUFFER)
+      var size = 2;          // 1 components per iteration
+      var type = gl.FLOAT;   // the data is 32bit floats
+      var normalize = gl.FALSE; // don't normalize the data
+      var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+      var offset = 0;        // start at the beginning of the buffer
+      gl.vertexAttribPointer(
+        this.ShadowProgram.attribs.texcoordLocation, size, type, normalize, stride, offset);
+
+      // Turn on the texcoord attribute
+      gl.enableVertexAttribArray(this.ShadowProgram.attribs.texcoordLocation);
+      // END MODIFY
+    }
+    
+
     // Set attributes
     gl.bindBuffer(gl.ARRAY_BUFFER, this.Meshes[i].vbo);
     gl.vertexAttribPointer(
@@ -1554,6 +1654,7 @@ LightMapDemoScene.prototype._Render = function () {
       0,
       0
     );
+
     gl.enableVertexAttribArray(this.ShadowProgram.attribs.vPos);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.Meshes[i].nbo);
@@ -1566,24 +1667,6 @@ LightMapDemoScene.prototype._Render = function () {
       0
     );
     gl.enableVertexAttribArray(this.ShadowProgram.attribs.vNorm);
-
-    // MODIFY
-  // bind the texcoord buffer.
-  gl.bindBuffer(gl.ARRAY_BUFFER, this.textcoords_buffer);
-
-  // Tell the texcoord attribute how to get data out of texcoordBuffer (ARRAY_BUFFER)
-  var size = 2;          // 1 components per iteration
-  var type = gl.FLOAT;   // the data is 32bit floats
-  var normalize = gl.FALSE; // don't normalize the data
-  var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-  var offset = 0;        // start at the beginning of the buffer
-  gl.vertexAttribPointer(
-    this.ShadowProgram.attribs.texcoordLocation, size, type, normalize, stride, offset);
-
-  // Turn on the texcoord attribute
-  gl.enableVertexAttribArray(this.ShadowProgram.attribs.texcoordLocation);
-  
-  // END MODIFY
 
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
